@@ -6,6 +6,8 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 
 已知问题：扩展验收发现默认 AliDNS DoH 配合 Technitium DNSSEC 校验时，部分公网域名返回 SERVFAIL，尚未修复。不能将本版本标为全部功能验收通过；通过项目、实验配置和未验证范围见[VM 扩展验收](docs/vm-extended-validation-20261120.md)。
 
+下一版候选已按用户确认调整：DNSSEC 首启默认关闭，公网上游使用 AliDNS＋360 DoT，并行查询两个上游。189 编译产物已经在全新系统盘完成[虚拟机验收](docs/vm-validation-20261123.md)，包括 Fake-IP / redir-host、来源白名单、VPN、多 WAN、SQM、虚拟 bonding/VLAN、终端和监控。Technitium 和 Console 源码及程序文件均未修改。GitHub 尚待重新构建并发布；物理机项目仍需在目标设备验收。
+
 项目仓库已由 `jearton/openwrt-pro` 更名为 [`jearton/prowrt`](https://github.com/jearton/prowrt)。历史 Release、版本标签和固件附件保留；GHCR 统一使用 `ghcr.io/jearton/prowrt`，仅发布定制固件，正式版与 CI 候选通过版本 tag 区分。通用插件 [`luci-app-technitium`](https://github.com/jearton/luci-app-technitium) 保持独立。迁移范围与校验见[改名记录](docs/prowrt-rename-20261123.md)和 [GHCR 路径调整](docs/ghcr-root-20261123.md)。
 
 ## 功能清单
@@ -101,7 +103,10 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 - **ttyd 自启**：默认随系统启动，并限制为 LAN 管理入口。
 - **Technitium 原生集成**：固定独立项目的源码提交，集成 DNS Server、Console、.NET 运行时及 LuCI 管理页面。
 - **主 DNS**：首启启用 Technitium，监听 IPv4 53 端口。
-- **默认上游**：首启设置 AliDNS DoH；与 DNSSEC 校验相关的已知失败项仍未修复，见 [DNSSEC 验收记录](docs/vm-extended-validation-20261120.md#默认-dnssec-未通过项)。
+- **默认上游**：当前源码首启设置 AliDNS 与 360 DoT，使用证书校验和固定引导 IP；已发布的 20261120.2 仍是旧配置。
+- **并行查询**：首启启用 concurrent forwarding，并发数为 2；缓存未命中时同时请求两个公网上游。
+- **DNSSEC 默认值**：本固件首启设置为关闭；原生 Console 的 Settings → General → DNSSEC 可以自行开启。通用后台包默认值不变。
+- **升级保留 DNS 设置**：已完成初始化的安装不会因升级而覆盖管理员的 DNSSEC、上游及并发设置；需要使用新默认值时在原生 Console 手动调整。
 - **广告过滤默认值**：首启启用 Technitium blocking，并使用 NXDOMAIN 拦截响应。
 - **dnsmasq 分工**：保留 DHCP，将 DNS 监听移到内部 5353 端口，供租约设备名解析使用。
 - **租约名转发**：为 `lan` 和首启 LAN 对应的 IPv4 `/24` 反向区创建到 dnsmasq 的转发。
@@ -109,6 +114,9 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 - **强制 LAN DNS**：将 LAN 的 IPv4 TCP/UDP 53 请求重定向至本机，保留客户端源 IP；升级时保留管理员对该规则的启停选择。
 - **DHCP 下发 DNS**：LAN 未配置 DNS 选项时，补充下发路由器地址。
 - **OpenClash DNS 接管**：默认关闭 OpenClash 自身的 DNS 重定向，避免与 Technitium 入口重复接管。
+- **OpenClash IPv4 监听**：内核禁用 IPv6 时将核心监听地址改为 `0.0.0.0`，避免透明 UDP 监听的 IPv6 套接字报错。
+- **DNS 与透明代理顺序**：强制 LAN DNS 规则启用时，LAN 的 53 请求先退出 OpenClash 接管链，再由 fw4 重定向给 Technitium，保留来源分组。
+- **UDP 来源准入**：在接管 Fake-IP 的 UDP 流量前应用 LAN 来源访问控制，避免 Fake-IP 绕过来源白名单。
 - **内部 DNS 端口保护**：防火墙拒绝客户端直接访问 5353、7874 端口。
 - **WAN 访问保护**：防火墙拒绝从 WAN 访问 Technitium 的 53、5380 端口。
 - **AdGuard Home 备用**：保留软件包，默认停用。

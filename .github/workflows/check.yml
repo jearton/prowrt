@@ -24,6 +24,7 @@ jobs:
           python3 -c 'import ast; ast.parse(open("scripts/check-rootfs-permissions.py").read())'
           python3 -c 'import ast; ast.parse(open("scripts/check-ttyd-login.py").read())'
           sh -n sources/full/files/etc/uci-defaults/93-technitium-dns sources/full/files/etc/init.d/technitium-provision sources/full/files/usr/libexec/technitium-provision
+          sh -n sources/full/files/usr/libexec/prowrt-openclash-dns sources/full/package/custom/luci-app-openclash/root/etc/init.d/openclash sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/yml_change.sh
           python3 - <<'PY'
           from pathlib import Path
           import json

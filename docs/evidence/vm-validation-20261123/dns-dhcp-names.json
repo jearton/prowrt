@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "A": {
+    "domain": "openwrt-lab-client.lan",
+    "type": "A",
+    "tcp": false,
+    "rcode": "NOERROR",
+    "answers": [
+      "192.168.77.223"
+    ],
+    "ad": false
+  },
+  "PTR": {
+    "domain": "223.77.168.192.in-addr.arpa",
+    "type": "PTR",
+    "tcp": false,
+    "rcode": "NOERROR",
+    "answers": [
+      "openwrt-lab-client.lan."
+    ],
+    "ad": false
+  },
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}

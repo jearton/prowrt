@@ -36,8 +36,10 @@ api() {
 
 api settings/set -G --data-urlencode dnsServerLocalEndPoints=0.0.0.0:53 \
 	--data-urlencode webServiceLocalAddresses=0.0.0.0 \
-	--data-urlencode forwarderProtocol=Https \
-	--data-urlencode 'forwarders=https://dns.alidns.com/dns-query (223.5.5.5)' \
+	--data-urlencode dnssecValidation=false \
+	--data-urlencode forwarderProtocol=Tls \
+	--data-urlencode 'forwarders=dns.alidns.com (223.5.5.5),dot.360.cn (101.226.4.6)' \
+	--data-urlencode concurrentForwarding=true --data-urlencode forwarderConcurrency=2 \
 	--data-urlencode enableBlocking=true --data-urlencode preferIPv6=false \
 	--data-urlencode blockingType=NxDomain
 api zones/list

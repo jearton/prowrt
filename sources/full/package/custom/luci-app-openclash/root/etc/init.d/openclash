@@ -1551,9 +1551,6 @@ if [ -n "$FW4" ]; then
             upnp_exclude
             nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return'
             nft 'add rule inet fw4 openclash_mangle ct direction reply counter return'
-            if [ "$en_mode" = "fake-ip" ]; then
-               nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
-            fi
             nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return'
             nft 'add rule inet fw4 openclash_mangle th dport @wan_ac_black_ports counter return'
             nft 'add rule inet fw4 openclash_mangle ip saddr @lan_ac_black_ips counter return'
@@ -1563,6 +1560,12 @@ if [ -n "$FW4" ]; then
             else
                nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs counter return'
                nft 'add rule inet fw4 openclash_mangle ip saddr != @lan_ac_white_ips counter return'
+            fi
+
+            # Apply source admission before sending even Fake-IP UDP traffic
+            # to Mihomo. A cached Fake-IP must not bypass the LAN whitelist.
+            if [ "$en_mode" = "fake-ip" ]; then
+               nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
             fi
 
             if [ "$en_mode" = "redir-host" ]; then
@@ -2999,6 +3002,11 @@ config_load "openclash"
 config_foreach firewall_lan_ac_traffic "lan_ac_traffic"
 
 #Custom
+
+# Let the firmware's local-DNS redirect run before transparent proxying.
+if [ -x /usr/libexec/prowrt-openclash-dns ]; then
+   /usr/libexec/prowrt-openclash-dns
+fi
 
 if [ -f "/etc/openclash/custom/openclash_custom_firewall_rules.sh" ]; then
    chmod +x /etc/openclash/custom/openclash_custom_firewall_rules.sh

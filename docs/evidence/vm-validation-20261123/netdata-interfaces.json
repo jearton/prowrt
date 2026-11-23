@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "all_interface_names": [
+    "bond-qa",
+    "bond-qa.88",
+    "br-lan",
+    "eth0",
+    "eth1",
+    "ifb4qa",
+    "lo",
+    "ndm0",
+    "ndm1",
+    "wg-qa"
+  ],
+  "physical_bridge_vlan_veth_bond_wireguard_ifb_loopback": true,
+  "actual_4Mbit_transfer": true,
+  "outgoing_Mbit_per_sec": {
+    "bond-qa": 1.2377533,
+    "ndm0": 1.1553115,
+    "ndm1": 0,
+    "bond-qa.88": 1.2365475
+  },
+  "layered_counters_not_added_together": true,
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}

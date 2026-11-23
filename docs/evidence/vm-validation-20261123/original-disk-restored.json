@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "original_disk": "21",
+  "router_power": "running",
+  "client_power": "stopped",
+  "original_services_and_local_DNS_healthy": true,
+  "ipv6_disabled": true,
+  "candidate_disk_23_retained_unused": true
+}

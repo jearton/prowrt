@@ -1,0 +1,52 @@
+{
+  "status": "passed",
+  "tests": [
+    {
+      "blocked": "223.5.5.5",
+      "remaining": "101.226.4.6",
+      "elapsed_ms": 169.3,
+      "query": {
+        "domain": "checkip.amazonaws.com",
+        "type": "A",
+        "tcp": false,
+        "rcode": "NOERROR",
+        "answers": [
+          "54.151.167.241",
+          "56.10.156.169",
+          "47.128.197.226",
+          "54.255.99.57",
+          "54.251.239.95",
+          "47.130.121.43",
+          "52.77.159.47",
+          "52.221.157.41"
+        ],
+        "ad": false
+      }
+    },
+    {
+      "blocked": "101.226.4.6",
+      "remaining": "223.5.5.5",
+      "elapsed_ms": 153.1,
+      "query": {
+        "domain": "checkip.amazonaws.com",
+        "type": "A",
+        "tcp": false,
+        "rcode": "NOERROR",
+        "answers": [
+          "44.195.197.190",
+          "54.196.217.76",
+          "100.58.89.140",
+          "174.129.18.38",
+          "184.196.36.131",
+          "3.209.192.90",
+          "3.217.188.107",
+          "35.175.157.143"
+        ],
+        "ad": false
+      }
+    }
+  ],
+  "restored": true,
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}

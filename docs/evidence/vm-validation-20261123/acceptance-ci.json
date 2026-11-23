@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "runs": [
+    {
+      "id": 45169169518,
+      "name": "Check repository",
+      "head_sha": "ff4dca64b5d6f31571fc1ed7c29deeadfa4148d2",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/jearton/prowrt/actions/runs/45169169518"
+    },
+    {
+      "id": 45169628424,
+      "name": "Reproduce Technitium first boot",
+      "head_sha": "ff4dca64b5d6f31571fc1ed7c29deeadfa4148d2",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/jearton/prowrt/actions/runs/45169628424"
+    },
+    {
+      "id": 45175420614,
+      "name": "Verify native Netdata overview",
+      "head_sha": "ff4dca64b5d6f31571fc1ed7c29deeadfa4148d2",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/jearton/prowrt/actions/runs/45175420614"
+    }
+  ]
+}

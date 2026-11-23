@@ -141,6 +141,7 @@ old["luci-i18n-netdata-zh-cn"] = "0.1"
 old["px5g-mbedtls"] = "11"
 old["openssl-util"] = "3.5.9-r1"
 old["libopenssl-conf"] = "3.5.9-r1"
+old["luci-app-openclash"] = "0.48.002-r1"
 for name in ("docker", "dockerd", "docker-compose", "containerd", "runc", "tini",
              "luci-app-dockerman", "luci-i18n-dockerman-zh-cn"):
     old.pop(name, None)

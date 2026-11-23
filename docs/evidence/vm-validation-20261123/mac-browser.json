@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "browser": "Mac Google Chrome",
+  "luci_port": 9000,
+  "argon_version": "3.1.4",
+  "monitoring_title": "实时监控",
+  "native_System_Overview_with_live_values": true,
+  "terminal_login_and_password_prompts": true,
+  "terminal_does_not_auto_login": true,
+  "terminal_iframe_bottom_gap_px": 24,
+  "actual_authentication_checked_separately": "terminal-authentication.json"
+}

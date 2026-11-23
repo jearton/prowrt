@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "netifd_configuration": true,
+  "handshake_and_ping": true,
+  "received_bytes": 1292763136,
+  "unenrolled_source_rejected": true,
+  "restart_recovery_ms": 2268.2,
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}

@@ -1,0 +1,48 @@
+{
+  "status": "passed",
+  "generated_bind_address": "0.0.0.0",
+  "no_transparent_listener_errors": true,
+  "white_client_real_ip": {
+    "domain": "api.ipify.org",
+    "type": "A",
+    "tcp": false,
+    "rcode": "NOERROR",
+    "answers": [
+      "172.67.74.152",
+      "104.26.12.205",
+      "104.26.13.205"
+    ],
+    "ad": false
+  },
+  "white_client_direct_rule": {
+    "domain": "checkip.amazonaws.com",
+    "type": "A",
+    "tcp": false,
+    "rcode": "NOERROR",
+    "answers": [
+      "52.77.159.47",
+      "54.251.239.95",
+      "54.255.99.57",
+      "13.251.36.15",
+      "52.221.157.41",
+      "54.151.167.241",
+      "47.128.197.226",
+      "47.130.121.43"
+    ],
+    "ad": false
+  },
+  "different_proxy_exit": true,
+  "nonwhite_real_answers": [
+    "104.26.12.205",
+    "172.67.74.152",
+    "104.26.13.205"
+  ],
+  "nonwhite_direct_exit": true,
+  "forced_dns_keeps_source_policy": true,
+  "sniffing_disabled": true,
+  "domain_rule_hit_with_real_ip": true,
+  "white_dns_entered_mihomo": 1,
+  "nonwhite_dns_entered_mihomo": 0,
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}

@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "original_router_disk_21_and_power_restored": true,
+  "candidate_disk_23_retained_unused": true,
+  "client_power_restored_off": true,
+  "all_15_VM_power_states_match": true,
+  "other_13_VM_configurations_identical": true,
+  "host_all_tables_IPv4_IPv6_routes_identical": true,
+  "management_namespace_routes_restored": true,
+  "owned_loopback_proxy_stopped": true,
+  "production_network_and_Tailnet_untouched": true
+}

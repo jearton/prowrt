@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "cold_boot_id_changed": true,
+  "functional_DNS_readiness_guest_uptime_seconds": 24.91,
+  "readiness_DNS_probes": [
+    {
+      "domain": "api.ipify.org",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "198.18.0.4"
+      ],
+      "ad": false
+    }
+  ],
+  "DHCP_renewed_before_lease_name_check": true,
+  "all_four_enabled_services_recovered": true,
+  "total_test_elapsed_ms": 59564.0,
+  "readiness_includes_firewall_installation": true,
+  "earlier_probe_before_firewall_ready_timed_out_ms": 35002,
+  "DNSSEC_off_parallel_DoT_preserved": true,
+  "fake_ip_and_actual_proxy_after_boot": true,
+  "dhcp_name_after_boot": true,
+  "forced_dns_after_boot": true,
+  "internal_dns_ports_denied_from_LAN": true,
+  "netdata_real_chart_data": true,
+  "ipv6_disabled": true,
+  "no_transparent_listener_errors": true,
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}

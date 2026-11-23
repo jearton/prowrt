@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "temporary_SSH_keys_removed_from_both_guests": true,
+  "isolated_client_control_server_peer_state_and_binaries_removed": true,
+  "four_added_client_test_packages_removed": true,
+  "candidate_shadow_restored_byte_for_byte": true,
+  "optional_services_restored_disabled": true,
+  "working_disk_retained_privately": true,
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}

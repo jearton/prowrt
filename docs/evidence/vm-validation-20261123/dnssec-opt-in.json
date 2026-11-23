@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "valid": {
+    "domain": "example.com",
+    "type": "A",
+    "tcp": false,
+    "rcode": "NOERROR",
+    "answers": [
+      "104.20.23.154",
+      "172.66.147.243"
+    ],
+    "ad": true
+  },
+  "invalid": {
+    "domain": "dnssec-failed.org",
+    "type": "A",
+    "tcp": false,
+    "rcode": "SERVFAIL",
+    "answers": [],
+    "ad": false
+  },
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}

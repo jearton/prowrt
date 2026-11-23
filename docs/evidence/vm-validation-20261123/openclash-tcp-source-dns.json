@@ -1,0 +1,35 @@
+{
+  "status": "passed",
+  "generated_bind_address": "0.0.0.0",
+  "no_transparent_listener_errors": true,
+  "white_client_fake_ip": {
+    "domain": "api.ipify.org",
+    "type": "A",
+    "tcp": false,
+    "rcode": "NOERROR",
+    "answers": [
+      "198.18.0.4"
+    ],
+    "ad": false
+  },
+  "white_client_direct_rule": {
+    "domain": "checkip.amazonaws.com",
+    "type": "A",
+    "tcp": false,
+    "rcode": "NOERROR",
+    "answers": [
+      "198.18.0.5"
+    ],
+    "ad": false
+  },
+  "different_proxy_exit": true,
+  "nonwhite_real_answers": [
+    "104.26.13.205",
+    "172.67.74.152",
+    "104.26.12.205"
+  ],
+  "nonwhite_direct_exit": true,
+  "forced_dns_keeps_source_policy": true,
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}

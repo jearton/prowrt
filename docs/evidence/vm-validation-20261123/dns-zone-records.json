@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "multiple_A": {
+    "domain": "server.prowrt-final.test",
+    "type": "A",
+    "tcp": false,
+    "rcode": "NOERROR",
+    "answers": [
+      "198.51.100.10",
+      "198.51.100.11"
+    ],
+    "ad": false
+  },
+  "CNAME": {
+    "domain": "alias.prowrt-final.test",
+    "type": "A",
+    "tcp": false,
+    "rcode": "NOERROR",
+    "answers": [
+      "198.51.100.11",
+      "198.51.100.10"
+    ],
+    "ad": false
+  },
+  "TXT": {
+    "domain": "prowrt-final.test",
+    "type": "TXT",
+    "tcp": false,
+    "rcode": "NOERROR",
+    "answers": [
+      "\"prowrt-validation\""
+    ],
+    "ad": false
+  },
+  "record_edit": true,
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}

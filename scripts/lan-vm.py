@@ -138,6 +138,24 @@ mv /etc/technitium /root/technitium-before-ci-firstboot
     print("The new packages and firmware initializer are running with fresh DNS state.", flush=True)
 
 
+def dns_defaults(guest):
+    output = guest.run(r"""
+test -e /etc/technitium/provisioned
+token=$(curl -fsS --max-time 5 -G http://127.0.0.1:5380/api/user/login \
+  --data-urlencode user=admin --data-urlencode pass@/etc/technitium/setup-password | jsonfilter -e '@.token')
+test -n "$token"
+trap 'curl -fsS --max-time 5 -H "Authorization: Bearer $token" http://127.0.0.1:5380/api/user/logout >/dev/null' EXIT
+curl -fsS --max-time 5 -H "Authorization: Bearer $token" http://127.0.0.1:5380/api/settings/get |
+  jsonfilter -e '@.response.dnssecValidation' -e '@.response.forwarderProtocol' \
+    -e '@.response.concurrentForwarding' -e '@.response.forwarderConcurrency' \
+    -e '@.response.forwarders[*]'
+""")
+    assert output.splitlines() == ["false", "Tls", "true", "2",
+                                   "dns.alidns.com:853 (223.5.5.5)",
+                                   "dot.360.cn:853 (101.226.4.6)"], output
+    print("Fresh native API defaults: DNSSEC off, two parallel certificate-verified DoT upstreams.", flush=True)
+
+
 def forced_dns(guest):
     # TEST-NET-3 is deliberately unreachable beyond this isolated namespace.
     subprocess.run(["ip", "addr", "add", "192.168.1.3/32", "dev", "lan-test"], check=True)
@@ -239,6 +257,8 @@ if __name__ == "__main__":
         print("The guest kernel has IPv6 disabled and no IPv6 interface addresses.", flush=True)
     elif action == "forced-dns":
         forced_dns(guest)
+    elif action == "dns-defaults":
+        dns_defaults(guest)
     elif action == "terminal-password":
         password = secrets.token_hex(24)
         guest.run("printf '%s\\n' 'root:" + password + "' | chpasswd")
