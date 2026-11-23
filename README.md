@@ -8,6 +8,8 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 
 下一版候选已按用户确认调整：DNSSEC 首启默认关闭，公网上游使用 AliDNS＋360 DoT，并行查询两个上游。189 编译产物已经在全新系统盘完成[虚拟机验收](docs/vm-validation-20261123.md)，包括 Fake-IP / redir-host、来源白名单、VPN、多 WAN、SQM、虚拟 bonding/VLAN、终端和监控。Technitium 和 Console 源码及程序文件均未修改。GitHub 尚待重新构建并发布；物理机项目仍需在目标设备验收。
 
+面板升级候选：Zashboard 3.30.0、MetaCubeXD 1.276.0，保留官方稳定 Mihomo 1.19.34。用户已于 2026-11-24 确认面板交互验收通过；这不代表新版最终镜像已发布。面板独立锁定、打包和检查见[记录](docs/openclash-dashboards-20261124.md)。
+
 项目仓库已由 `jearton/openwrt-pro` 更名为 [`jearton/prowrt`](https://github.com/jearton/prowrt)。历史 Release、版本标签和固件附件保留；GHCR 统一使用 `ghcr.io/jearton/prowrt`，仅发布定制固件，正式版与 CI 候选通过版本 tag 区分。通用插件 [`luci-app-technitium`](https://github.com/jearton/luci-app-technitium) 保持独立。迁移范围与校验见[改名记录](docs/prowrt-rename-20261123.md)和 [GHCR 路径调整](docs/ghcr-root-20261123.md)。
 
 ## 功能清单

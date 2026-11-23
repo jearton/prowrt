@@ -20,12 +20,23 @@
 
 - [Technitium 首启策略](../sources/full/files/usr/libexec/technitium-provision)：DNSSEC 关闭、AliDNS＋360 DoT、并行数 2；不修改后台及 Console，不重写已初始化系统的管理员设置。
 - [OpenClash 配置生成](../sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/yml_change.sh)：内核禁用 IPv6 时生成 IPv4 监听地址，避免 TProxy 监听报错。
-- [OpenClash 来源准入顺序](../sources/full/package/custom/luci-app-openclash/root/etc/init.d/openclash)：来源访问控制先于 Fake-IP UDP 接管。
+- [OpenClash 来源准入顺序](../sources/full/package/custom/luci-app-openclash/root/etc/init.d/openclash)：在兼容模式开启 UDP 代理的分支，将来源访问控制放在 Fake-IP UDP 接管之前。这是本项目的严格来源策略适配；原生来源流量表本身排除 Fake-IP 目标，不能据此宣称上游确认存在 bug。无补丁 Dev 版的独立复现和上游反馈尚未完成。
 - [本地 DNS 顺序适配](../sources/full/files/usr/libexec/prowrt-openclash-dns)：只在已有本地 LAN DNS 重定向启用、目标 53 时，排除对应 LAN 的代理链 53 请求；由 OpenClash 启动规则后调用，管理员关闭规则时不主动开启。
-- [包修订号](../sources/full/package/custom/luci-app-openclash/Makefile)：0.48.002-r1 用于区分本项目调整。
+- [包修订号](../sources/full/package/custom/luci-app-openclash/Makefile)：0.48.002-r1 区分上述策略调整；r2 更新下列两个面板的打包来源，保留官方稳定 Mihomo 1.19.34。
 - 后台“立即备份遗漏尚未落盘区域”仅[记录为原生限制](../docs/vm-validation-20261123.md)，用户决定暂不修改，因此没有对应后台补丁。
 
 上述条目是当前源码变更，须随最终镜像重新验收；不是历史发布镜像已自动升级的声明。
+
+## 2026-11-24 面板打包调整
+
+- [独立来源锁](../sources/full/package/custom/luci-app-openclash/ui.lock.json)：Zashboard 从内置 1.48.0 更新为 3.30.0，MetaCubeXD 从实际入口使用的 1.176.0 更新为 1.276.0；分别锁定官方 Release 附件、源码提交和 SHA-256。
+- [下载配方](../sources/full/package/custom/luci-app-openclash/Makefile)：通过 OpenWrt 的下载流程取回已锁定附件，复用下载缓存并验证摘要。
+- [静态资源安装](../sources/full/package/custom/luci-app-openclash/prepare-ui.py)：先验证压缩包与本地入口资源，再整体替换面板目录，清除旧版分块；直接使用官方分发文件，不修改面板程序。
+- [包内来源记录](../scripts/lan-vm.py)：首次启动核对 `/usr/share/prowrt/openclash-ui.json` 与固件 `build.json` 中两个面板的版本和摘要。
+- [固件身份](../scripts/build-metadata.py)：把面板来源锁纳入构建输入摘要，避免只显示 OpenClash 插件版本而遗漏内置面板版本。
+- [安装检查](../scripts/check-openclash-ui.py)：检查实际官方附件能离线加载本地入口资源，并验证旧文件被替换。
+- [浏览器检查工具](../scripts/check-openclash-browser.cjs)：使用原生 OpenClash 链接生成器和独立 Mihomo 测试后端，记录连接性能与缓存迁移；用户的面板交互验收与工具结果分别记录。
+- 此次没有切换 Smart 核心，也没有升级 GeoSite、Country.mmdb 或系统依赖；这些组件不能仅凭插件版本号被标为“全部最新”。
 
 ## 构建缓存与固件身份
 

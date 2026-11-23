@@ -62,6 +62,10 @@ jobs:
           python3 scripts/build-metadata.py generate "$RUNNER_TEMP/build.json"
           python3 scripts/build-metadata.py verify "$RUNNER_TEMP/build.json"
           test -x sources/full/files/usr/bin/prowrt-version
+      - name: Check independently pinned OpenClash dashboards
+        run: |
+          python3 -m unittest discover -s tests -p 'test_openclash_ui.py' -v
+          python3 scripts/check-openclash-ui.py "$RUNNER_TEMP/openclash-ui"
       - name: Check the pinned standalone Technitium packages
         run: |
           packages=$(mktemp -d)
