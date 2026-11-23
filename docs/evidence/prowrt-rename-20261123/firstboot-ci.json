@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "run": "https://github.com/jearton/prowrt/actions/runs/45122212857",
+  "jobs": [
+    {
+      "name": "firstboot",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prepare isolated VM tools",
+          "conclusion": "success"
+        },
+        {
+          "name": "Fetch checksum-pinned regression image and released APKs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Reproduce first initialization and check LAN services",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ]
+}

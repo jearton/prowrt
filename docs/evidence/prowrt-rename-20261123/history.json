@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "repository_identity_unchanged": 1461569182,
+  "releases_preserved": 4,
+  "release_assets_preserved": 16,
+  "tags_and_commit_shas_preserved": 5,
+  "release_names_bodies_and_asset_digests_unchanged": true,
+  "independent_plugin_repository": "jearton/luci-app-technitium"
+}

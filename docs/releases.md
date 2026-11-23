@@ -7,6 +7,12 @@ oras pull ghcr.io/jearton/prowrt/firmware:v25.12.6-20261120.2
 sha256sum -c SHA256SUMS
 ```
 
+新命名空间的不可变下载引用：
+
+```sh
+oras pull ghcr.io/jearton/prowrt/firmware@sha256:6da4b4c51cd088e2afb5e2aafdd551b24f25881abd2058f69499a529c9822c9a
+```
+
 也可以从 [v25.12.6-20261120.2 的 GitHub Release](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261120.2) 直接下载镜像和 SHA-256。
 
 安装或升级前，先在隔离环境复验 EFI 启动、IPv6 禁用、LuCI 和 DNS。保留旧磁盘和配置备份。具体步骤见[固件方案](firmware.md)。
@@ -25,11 +31,11 @@ oras pull ghcr.io/jearton/openwrt-pro/firmware@sha256:18298a9616ea62f169e96cdfe7
 
 ## ProWrt 改名与历史发布
 
-2026-11-23 项目更名为 ProWrt，仓库为 `jearton/prowrt`。后续命名版本与 CI 候选制品使用 `ghcr.io/jearton/prowrt/firmware`；旧 `ghcr.io/jearton/openwrt-pro/firmware` 的版本和摘要保留。已有 Release、Git tag、附件名称、内容和校验和不变。新命名空间可以使用同一历史版本标签重新发布经过校验的附件；OCI 来源等元数据随仓库名变化，新 OCI manifest 摘要须单独核对，不能沿用旧摘要。详见[迁移与验证](prowrt-rename-20261123.md)。
+2026-11-23 项目更名为 ProWrt，仓库为 `jearton/prowrt`。后续命名版本与 CI 候选制品使用 `ghcr.io/jearton/prowrt/firmware`；旧 `ghcr.io/jearton/openwrt-pro/firmware` 的版本和摘要保留。已有 Release、Git tag、附件名称、内容和校验和不变。新命名空间可以使用同一历史版本标签重新发布经过校验的附件；OCI 来源等元数据随仓库名变化，新 OCI manifest 摘要须单独核对，不能沿用旧摘要。已通过[新路径发布与回拉](https://github.com/jearton/prowrt/actions/runs/45121685855)、[空凭据匿名全量拉取](https://github.com/jearton/prowrt/actions/runs/45122617287)以及[改名后的首次启动回归](https://github.com/jearton/prowrt/actions/runs/45122212857)。详见[迁移与验证](prowrt-rename-20261123.md)。
 
 ## 持续集成
 
-推送到 main 或创建 PR 后，GitHub Actions 检查清单摘要、Netdata 补丁和 Compose 的回环端口映射。发布工作流下载对应 GitHub Release 的三个文件，用 Git tag 上的清单核对 SHA-256，检测 gzip 完整性，发布为 GHCR 同名版本，再按 OCI 摘要拉回核验。工作流摘要记录可直接使用的摘要引用。
+推送到 main 或创建 PR 后，GitHub Actions 检查清单摘要、Netdata 补丁和 Compose 的回环端口映射。发布工作流下载对应 GitHub Release 的三个文件，用 Git tag 上的清单核对 SHA-256，检测 gzip 完整性，发布为 GHCR 同名版本，再按 OCI 摘要拉回核验。工作流摘要记录可直接使用的摘要引用。发布后再用空 registry 凭据配置匿名解析、按摘要拉取并复验；手动执行时可启用 `verify_only`，只检查已有公开制品，不重新推送或改写版本。
 
 ## 发布下一版
 

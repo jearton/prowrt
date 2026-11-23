@@ -115,3 +115,5 @@ r6 只在 LuCI 授权的 TLS 监听设置 ALPN 为 http/1.1，保留来源、LuC
 [45121852164](https://github.com/jearton/prowrt/actions/runs/45121852164) 已成功从改名仓库下载旧镜像，并通过独立 `luci-app-technitium` 发布包校验；随后外部 `px5g-mbedtls-13.apk` 与原固定 SHA256 不符，任务在启动 VM 前退出。不能把该失败记为固件启动失败。
 
 回归底座更新为保留的 `v25.12.6-20261120.2` Release，镜像 SHA256 为 `c0f28710b3f6430699772bf9b8d4f9cd888e88aafd7e4d71e4f681f0982dff11`。该镜像已包含从固定源码构建的证书工具，因此移除外部 px5g/OpenSSL APK 下载；仍独立下载、校验并安装三个 Technitium APK，清空 DNS 状态后重启复验初始化。原有 DNS、重定向、HTTP/HTTPS、终端登录与权限断言保留。历史 Release 及其附件不作修改。
+
+调整后的[回归 45122212857](https://github.com/jearton/prowrt/actions/runs/45122212857)已通过全部步骤；校验新的固定镜像及独立插件后，成功执行首次初始化和 LAN 服务检查。该回归仍不代表既有公网 DNSSEC 问题已修复。
