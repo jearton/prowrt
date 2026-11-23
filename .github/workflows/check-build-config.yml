@@ -1,0 +1,44 @@
+name: Check full firmware configuration
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/check-build-config.yml'
+      - 'scripts/build-full.sh'
+      - 'scripts/build-cache.py'
+      - 'scripts/build-metadata.py'
+      - 'scripts/build-metrics.py'
+      - 'scripts/prepare-technitium-luci.sh'
+      - '*.lock.json'
+      - 'profiles/network-ui.config'
+      - 'sources/full/**'
+      - 'packages/**'
+      - 'patches/**'
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Prepare configuration tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -qy --no-install-recommends build-essential gawk gettext \
+            libncurses-dev libssl-dev zlib1g-dev rsync file squashfs-tools python3-setuptools
+      - name: Check real feeds, custom recipes and package selections
+        env:
+          OPENWRT_CACHE_ROOT: ${{ runner.temp }}/configuration-cache
+          OPENWRT_METRICS_DIR: ${{ runner.temp }}/configuration-metrics
+          OPENWRT_PREPARE_ONLY: '1'
+        run: |
+          scripts/build-full.sh "$RUNNER_TEMP/configuration-tree" "$RUNNER_TEMP/no-firmware-output"
+          test ! -e "$RUNNER_TEMP/no-firmware-output"
+          grep -Fx "CONFIG_CCACHE_DIR=\"$OPENWRT_CACHE_ROOT/ccache\"" "$RUNNER_TEMP/configuration-tree/.config"
+          grep -Fx "CONFIG_DOWNLOAD_FOLDER=\"$OPENWRT_CACHE_ROOT/dl\"" "$RUNNER_TEMP/configuration-tree/.config"

@@ -20,7 +20,7 @@ def cache_keys(repo):
     return digest.hexdigest()[:24]
 
 
-def configure(config, root, tree, out):
+def prepare(root, tree, out):
     root, tree, out = (p.resolve() for p in (root, tree, out))
     if root == Path(root.anchor) or any(root == p or root in p.parents or p in root.parents for p in (tree, out)):
         raise ValueError("Cache must be a dedicated directory outside build and output trees")
@@ -33,6 +33,11 @@ def configure(config, root, tree, out):
             raise ValueError("Cache children cannot be symlinks")
         path.mkdir(parents=True, exist_ok=True)
     (root / ".prowrt-cache").write_text("v1\n")
+    return root
+
+
+def configure(config, root, tree, out):
+    root = prepare(root, tree, out)
     updates = {"CONFIG_CCACHE": "y", "CONFIG_DOWNLOAD_FOLDER": json.dumps(str(root / "dl")),
                "CONFIG_CCACHE_DIR": json.dumps(str(root / "ccache"))}
     lines = [line for line in config.read_text().splitlines()
@@ -98,6 +103,9 @@ if __name__ == "__main__":
     cfg = sub.add_parser("configure")
     for name in ("config", "root", "tree", "out"):
         cfg.add_argument(name, type=Path)
+    init = sub.add_parser("prepare")
+    for name in ("root", "tree", "out"):
+        init.add_argument(name, type=Path)
     get = sub.add_parser("fetch")
     get.add_argument("url")
     get.add_argument("sha256")
@@ -109,6 +117,8 @@ if __name__ == "__main__":
         print(cache_keys(args.repo))
     elif args.action == "configure":
         configure(args.config, args.root, args.tree, args.out)
+    elif args.action == "prepare":
+        prepare(args.root, args.tree, args.out)
     elif args.action == "fetch":
         print(fetch(args.url, args.sha256, args.cache))
     else:

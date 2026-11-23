@@ -61,9 +61,8 @@ PY
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 stage_start custom-packages-and-overlay
-cp "$repo/profiles/network-ui.config" .config
 if [[ -n ${OPENWRT_CACHE_ROOT:-} ]]; then
-    python3 "$repo/scripts/build-cache.py" configure .config "$OPENWRT_CACHE_ROOT" "$tree" "$out"
+    python3 "$repo/scripts/build-cache.py" prepare "$OPENWRT_CACHE_ROOT" "$tree" "$out"
 fi
 
 for package in "$recipes"/* netdata quickstart luci-app-quickstart luci-i18n-quickstart-zh-cn luci-app-weechat; do
@@ -136,6 +135,12 @@ find files -type d -exec chmod 0755 {} +
 find files -type f -perm -u=x -exec chmod 0755 {} +
 find files -type f ! -perm -u=x -exec chmod 0644 {} +
 stage_start configuration
+# feeds uninstall refreshes an existing .config. Write the authoritative profile
+# only after all custom recipes have been installed, then apply cache paths.
+cp "$repo/profiles/network-ui.config" .config
+if [[ -n ${OPENWRT_CACHE_ROOT:-} ]]; then
+    python3 "$repo/scripts/build-cache.py" configure .config "$OPENWRT_CACHE_ROOT" "$tree" "$out"
+fi
 make defconfig
 grep -Fx CONFIG_USE_APK=y .config
 grep -Fx 'CONFIG_GRUB_BOOTOPTS="ipv6.disable=1"' .config
@@ -150,6 +155,10 @@ done
 if grep -E '^CONFIG_PACKAGE_(docker|dockerd|docker-compose|containerd|runc|tini|luci-app-dockerman|luci-i18n-dockerman-[^=]*)=y$' .config; then
     echo 'A Docker package remains enabled' >&2
     exit 1
+fi
+if [[ ${OPENWRT_PREPARE_ONLY:-0} == 1 ]]; then
+    echo 'Source, custom recipes, cache configuration and required package selections verified; no firmware compiled'
+    exit 0
 fi
 jobs="${OPENWRT_JOBS:-$(nproc)}"
 export GOPROXY='https://proxy.golang.org|direct'

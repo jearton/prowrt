@@ -82,6 +82,13 @@ class BuildSupport(unittest.TestCase):
             with self.assertRaises(ValueError, msg=str(invalid)):
                 cache.configure(config, invalid, tree, out)
 
+    def test_cache_preparation_does_not_create_a_premature_openwrt_config(self):
+        tree = self.root / 'tree'
+        tree.mkdir()
+        cache.prepare(self.root / 'cache', tree, self.root / 'output')
+        self.assertFalse((tree / '.config').exists())
+        self.assertEqual((self.root / 'cache/.prowrt-cache').read_text(), 'v1\n')
+
     def test_download_cache_hit_corruption_and_digest_mismatch(self):
         upstream = self.root / 'upstream'
         upstream.write_bytes(b'pinned public archive')
