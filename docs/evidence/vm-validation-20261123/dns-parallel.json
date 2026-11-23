@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "two_real_upstreams": true,
+  "faster_upstream_reversed": true,
+  "cases": [
+    {
+      "query": "first1795432741162432448.example.com",
+      "arrival_difference_ms": 0.043,
+      "both_received_before_first_answer": true
+    },
+    {
+      "query": "second1795432741413758028.example.com",
+      "arrival_difference_ms": 0.121,
+      "both_received_before_first_answer": true
+    }
+  ]
+}

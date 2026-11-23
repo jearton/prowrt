@@ -99,6 +99,8 @@ until [[ $(status "$luci_http/cgi-bin/luci/" 2>/dev/null) = 403 ]] &&
     sleep 3
 done
 
+python3 "$repo/scripts/lan-vm.py" dns-defaults "$test_dir"
+
 login() {
     local -a password_args=(--data-urlencode "luci_password@$test_dir/root-password")
     # curl omits a name@file parameter when the file is empty.

@@ -1,0 +1,796 @@
+{
+  "status": "passed",
+  "configuration": {
+    "dnssecValidation": false,
+    "forwarderProtocol": "Tls",
+    "forwarders": [
+      "dns.alidns.com:853 (223.5.5.5)",
+      "dot.360.cn:853 (101.226.4.6)"
+    ],
+    "concurrentForwarding": true,
+    "forwarderConcurrency": 2
+  },
+  "queries": [
+    {
+      "round": 0,
+      "domain": "example.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "104.20.23.154",
+        "172.66.147.243"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "example.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "104.20.23.154",
+        "172.66.147.243"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "cloudflare.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "104.16.132.229",
+        "104.16.133.229"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "cloudflare.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "104.16.132.229",
+        "104.16.133.229"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "api.ipify.org",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "104.26.12.205",
+        "172.67.74.152",
+        "104.26.13.205"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "api.ipify.org",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "172.67.74.152",
+        "104.26.12.205",
+        "104.26.13.205"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "checkip.amazonaws.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "54.196.217.76",
+        "3.209.192.90",
+        "184.196.36.131",
+        "100.27.94.95",
+        "3.234.13.61",
+        "98.89.146.47",
+        "3.217.188.107",
+        "100.62.134.110"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "checkip.amazonaws.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "100.27.94.95",
+        "3.209.192.90",
+        "54.196.217.76",
+        "100.62.134.110",
+        "98.89.146.47",
+        "184.196.36.131",
+        "3.234.13.61",
+        "3.217.188.107"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "www.baidu.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "180.101.51.73",
+        "180.101.49.44"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "www.baidu.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "180.101.49.44",
+        "180.101.51.73"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "www.qq.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "58.217.183.232",
+        "58.217.133.225"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "www.qq.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "58.217.133.225",
+        "58.217.183.232"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "www.bilibili.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "175.4.62.127",
+        "116.207.163.64",
+        "61.147.236.104",
+        "183.131.147.28",
+        "61.147.236.101",
+        "61.147.236.102",
+        "175.4.62.128",
+        "175.4.62.129",
+        "183.131.147.48",
+        "61.147.236.103",
+        "114.230.222.139",
+        "116.207.163.66",
+        "116.207.163.65",
+        "114.230.222.138",
+        "183.131.147.29",
+        "183.131.147.30",
+        "117.21.179.20",
+        "117.21.179.18",
+        "183.131.147.27",
+        "117.21.179.19"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "www.bilibili.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "61.147.236.101",
+        "61.147.236.103",
+        "183.131.147.29",
+        "183.131.147.48",
+        "114.230.222.138",
+        "116.207.163.64",
+        "114.230.222.139",
+        "183.131.147.27",
+        "116.207.163.65",
+        "61.147.236.102",
+        "175.4.62.129",
+        "117.21.179.20",
+        "116.207.163.66",
+        "183.131.147.30",
+        "175.4.62.128",
+        "61.147.236.104",
+        "117.21.179.19",
+        "183.131.147.28",
+        "175.4.62.127",
+        "117.21.179.18"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "www.taobao.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "61.153.101.67",
+        "61.153.101.66"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "www.taobao.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "61.153.101.67",
+        "61.153.101.66"
+      ],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "does-not-exist-prowrt-20261123.invalid",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NXDOMAIN",
+      "answers": [],
+      "ad": false
+    },
+    {
+      "round": 0,
+      "domain": "does-not-exist-prowrt-20261123.invalid",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NXDOMAIN",
+      "answers": [],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "example.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "172.66.147.243",
+        "104.20.23.154"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "example.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "172.66.147.243",
+        "104.20.23.154"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "cloudflare.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "104.16.132.229",
+        "104.16.133.229"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "cloudflare.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "104.16.132.229",
+        "104.16.133.229"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "api.ipify.org",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "172.67.74.152",
+        "104.26.13.205",
+        "104.26.12.205"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "api.ipify.org",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "172.67.74.152",
+        "104.26.13.205",
+        "104.26.12.205"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "checkip.amazonaws.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "3.234.13.61",
+        "98.89.146.47",
+        "3.217.188.107",
+        "100.62.134.110",
+        "54.196.217.76",
+        "3.209.192.90",
+        "184.196.36.131",
+        "100.27.94.95"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "checkip.amazonaws.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "3.234.13.61",
+        "100.62.134.110",
+        "3.217.188.107",
+        "184.196.36.131",
+        "100.27.94.95",
+        "98.89.146.47",
+        "54.196.217.76",
+        "3.209.192.90"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "www.baidu.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "180.101.49.44",
+        "180.101.51.73"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "www.baidu.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "180.101.51.73",
+        "180.101.49.44"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "www.qq.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "58.217.183.232",
+        "58.217.133.225"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "www.qq.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "58.217.133.225",
+        "58.217.183.232"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "www.bilibili.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "183.131.147.48",
+        "61.147.236.103",
+        "114.230.222.139",
+        "116.207.163.66",
+        "116.207.163.65",
+        "114.230.222.138",
+        "183.131.147.29",
+        "183.131.147.30",
+        "117.21.179.20",
+        "117.21.179.18",
+        "183.131.147.27",
+        "117.21.179.19",
+        "175.4.62.127",
+        "116.207.163.64",
+        "61.147.236.104",
+        "183.131.147.28",
+        "61.147.236.101",
+        "61.147.236.102",
+        "175.4.62.128",
+        "175.4.62.129"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "www.bilibili.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "117.21.179.18",
+        "183.131.147.28",
+        "116.207.163.65",
+        "114.230.222.139",
+        "116.207.163.64",
+        "116.207.163.66",
+        "61.147.236.104",
+        "61.147.236.103",
+        "183.131.147.29",
+        "183.131.147.27",
+        "175.4.62.127",
+        "61.147.236.102",
+        "183.131.147.30",
+        "175.4.62.129",
+        "117.21.179.20",
+        "117.21.179.19",
+        "175.4.62.128",
+        "183.131.147.48",
+        "114.230.222.138",
+        "61.147.236.101"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "www.taobao.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "61.153.101.66",
+        "61.153.101.67"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "www.taobao.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "61.153.101.67",
+        "61.153.101.66"
+      ],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "does-not-exist-prowrt-20261123.invalid",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NXDOMAIN",
+      "answers": [],
+      "ad": false
+    },
+    {
+      "round": 1,
+      "domain": "does-not-exist-prowrt-20261123.invalid",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NXDOMAIN",
+      "answers": [],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "example.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "172.66.147.243",
+        "104.20.23.154"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "example.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "172.66.147.243",
+        "104.20.23.154"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "cloudflare.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "104.16.132.229",
+        "104.16.133.229"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "cloudflare.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "104.16.133.229",
+        "104.16.132.229"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "api.ipify.org",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "104.26.12.205",
+        "172.67.74.152",
+        "104.26.13.205"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "api.ipify.org",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "104.26.13.205",
+        "172.67.74.152",
+        "104.26.12.205"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "checkip.amazonaws.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "100.62.134.110",
+        "54.196.217.76",
+        "3.209.192.90",
+        "184.196.36.131",
+        "100.27.94.95",
+        "3.234.13.61",
+        "98.89.146.47",
+        "3.217.188.107"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "checkip.amazonaws.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "100.27.94.95",
+        "98.89.146.47",
+        "3.234.13.61",
+        "54.196.217.76",
+        "184.196.36.131",
+        "100.62.134.110",
+        "3.217.188.107",
+        "3.209.192.90"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "www.baidu.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "180.101.51.73",
+        "180.101.49.44"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "www.baidu.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "180.101.51.73",
+        "180.101.49.44"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "www.qq.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "58.217.133.225",
+        "58.217.183.232"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "www.qq.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "58.217.133.225",
+        "58.217.183.232"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "www.bilibili.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "116.207.163.64",
+        "61.147.236.104",
+        "183.131.147.28",
+        "61.147.236.101",
+        "61.147.236.102",
+        "175.4.62.128",
+        "175.4.62.129",
+        "183.131.147.48",
+        "61.147.236.103",
+        "114.230.222.139",
+        "116.207.163.66",
+        "116.207.163.65",
+        "114.230.222.138",
+        "183.131.147.29",
+        "183.131.147.30",
+        "117.21.179.20",
+        "117.21.179.18",
+        "183.131.147.27",
+        "117.21.179.19",
+        "175.4.62.127"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "www.bilibili.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "114.230.222.138",
+        "116.207.163.64",
+        "175.4.62.128",
+        "183.131.147.29",
+        "61.147.236.104",
+        "117.21.179.18",
+        "175.4.62.129",
+        "61.147.236.102",
+        "116.207.163.66",
+        "61.147.236.103",
+        "183.131.147.30",
+        "183.131.147.27",
+        "114.230.222.139",
+        "183.131.147.28",
+        "117.21.179.19",
+        "116.207.163.65",
+        "183.131.147.48",
+        "61.147.236.101",
+        "117.21.179.20",
+        "175.4.62.127"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "www.taobao.com",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NOERROR",
+      "answers": [
+        "61.153.101.66",
+        "61.153.101.67"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "www.taobao.com",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NOERROR",
+      "answers": [
+        "61.153.101.67",
+        "61.153.101.66"
+      ],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "does-not-exist-prowrt-20261123.invalid",
+      "type": "A",
+      "tcp": false,
+      "rcode": "NXDOMAIN",
+      "answers": [],
+      "ad": false
+    },
+    {
+      "round": 2,
+      "domain": "does-not-exist-prowrt-20261123.invalid",
+      "type": "A",
+      "tcp": true,
+      "rcode": "NXDOMAIN",
+      "answers": [],
+      "ad": false
+    }
+  ],
+  "upstream_tls_counters": "table inet prowrt_dns_probe {\n\tchain output {\n\t\ttype filter hook output priority filter + 5; policy accept;\n\t\tip daddr 223.5.5.5 tcp dport 853 counter packets 82 bytes 7821 comment \"AliDNS\"\n\t\tip daddr 101.226.4.6 tcp dport 853 counter packets 86 bytes 7825 comment \"Dns360\"\n\t}\n}\n"
+}

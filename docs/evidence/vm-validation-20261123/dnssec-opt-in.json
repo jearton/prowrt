@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "valid": {
+    "domain": "example.com",
+    "type": "A",
+    "tcp": false,
+    "rcode": "NOERROR",
+    "answers": [
+      "104.20.23.154",
+      "172.66.147.243"
+    ],
+    "ad": true
+  },
+  "invalid": {
+    "domain": "dnssec-failed.org",
+    "type": "A",
+    "tcp": false,
+    "rcode": "SERVFAIL",
+    "answers": [],
+    "ad": false
+  }
+}

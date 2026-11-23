@@ -15,3 +15,14 @@
 | 构建权限 | [构建入口](../scripts/build-full.sh)固定 umask 并归一化公开 overlay 的权限；[squashfs 元数据检查](../scripts/check-rootfs-permissions.py)拒绝非 root 服务无法遍历的系统目录，保留 shadow 等私有文件权限 |
 
 [Quickstart r5 补丁](../packages/quickstart-home-r5/quickstart-openwrt.patch) 对应较早的 Quickstart 源码配置。当前网络界面方案的 Quickstart 来源见 [iStoreOS 资产锁](../packages/istoreos-ui-2026110611/ui-source.json)。
+
+## 2026-11-23 候选源码调整
+
+- [Technitium 首启策略](../sources/full/files/usr/libexec/technitium-provision)：DNSSEC 关闭、AliDNS＋360 DoT、并行数 2；不修改后台及 Console，不重写已初始化系统的管理员设置。
+- [OpenClash 配置生成](../sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/yml_change.sh)：内核禁用 IPv6 时生成 IPv4 监听地址，避免 TProxy 监听报错。
+- [OpenClash 来源准入顺序](../sources/full/package/custom/luci-app-openclash/root/etc/init.d/openclash)：来源访问控制先于 Fake-IP UDP 接管。
+- [本地 DNS 顺序适配](../sources/full/files/usr/libexec/prowrt-openclash-dns)：只在已有本地 LAN DNS 重定向启用、目标 53 时，排除对应 LAN 的代理链 53 请求；由 OpenClash 启动规则后调用，管理员关闭规则时不主动开启。
+- [包修订号](../sources/full/package/custom/luci-app-openclash/Makefile)：0.48.002-r1 用于区分本项目调整。
+- 后台“立即备份遗漏尚未落盘区域”仅[记录为原生限制](../docs/vm-validation-20261123.md)，用户决定暂不修改，因此没有对应后台补丁。
+
+上述条目是当前源码变更，须随最终镜像重新验收；不是历史发布镜像已自动升级的声明。

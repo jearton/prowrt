@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "isolated_headscale": "0.29.7",
+  "client_version": "1.104.7",
+  "independent_peer": true,
+  "actual_tunnel_bytes": 1250164736,
+  "acl_denied_listening_port": true,
+  "subnet_route_test": true,
+  "ipv4_exit_node_http": true,
+  "exit_route_uses_tun": true,
+  "dns_unchanged": true,
+  "used_authkey_purged": true,
+  "identity_preserved_on_restart": true,
+  "restart_recovery_ms": 8540.8
+}

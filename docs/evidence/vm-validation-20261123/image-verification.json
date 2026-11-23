@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "packages": 469,
+  "kernel_abi_checked": true,
+  "rootfs_permissions_checked": true,
+  "expected_sources_match": true,
+  "technitium_and_console_upstream_payload": [
+    {
+      "directory": "usr/lib/technitium/server",
+      "files": 100,
+      "all_files_match_pinned_upstream_archive": true,
+      "archive_sha256": "51f2d4ebaf156a85035e820afde5e1d428f1920a37d7f0c65203fb1766917e08"
+    },
+    {
+      "directory": "usr/lib/technitium/console",
+      "files": 68,
+      "all_files_match_pinned_upstream_archive": true,
+      "archive_sha256": "bde83282ed4d3767dabc09db1a1efe29c4195b51eb501235cc30bf04045d4810"
+    }
+  ],
+  "sha256": {
+    "openwrt-x86-64-generic-squashfs-combined-efi.img.gz": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+    "openwrt-x86-64-generic.manifest": "ac8c53730b349d905dc56c159c8f04a2f6dcbc86a994c183dfce1bb4a1531cfc"
+  },
+  "image_bytes": 173923061
+}

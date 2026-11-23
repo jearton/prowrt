@@ -1,0 +1,6 @@
+{
+  "status": "passed",
+  "udp_and_tcp": true,
+  "disable_and_restore": true,
+  "router_direct_while_disabled": true
+}

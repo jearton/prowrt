@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "netifd_configuration": true,
+  "handshake_and_ping": true,
+  "received_bytes": 1474953216,
+  "unenrolled_source_rejected": true,
+  "restart_recovery_ms": 2275.9
+}

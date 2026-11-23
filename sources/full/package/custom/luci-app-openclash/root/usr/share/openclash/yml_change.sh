@@ -7,6 +7,13 @@
 LOG_FILE="/tmp/openclash.log"
 CONFIG_FILE="$5"
 
+# Mihomo treats '*' as an IPv6-capable transparent listener. When IPv6 is
+# disabled in the kernel, its IPv6 socket options fail even for IPv4 traffic.
+core_bind_address='*'
+if [ ! -d /proc/sys/net/ipv6 ] || [ "$(cat /sys/module/ipv6/parameters/disable 2>/dev/null)" = 1 ]; then
+   core_bind_address='0.0.0.0'
+fi
+
 custom_fakeip_filter=$(uci_get_config "custom_fakeip_filter" || echo 0)
 custom_name_policy=$(uci_get_config "custom_name_policy" || echo 0)
 custom_proxy_server_policy=$(uci_get_config "custom_proxy_server_policy" || echo 0)
@@ -474,7 +481,7 @@ begin
          Value['allow-lan'] = true
          Value['external-controller'] = '0.0.0.0:' + controller_port
          Value['secret'] = secret
-         Value['bind-address'] = '*'
+         Value['bind-address'] = '$core_bind_address'
          Value['global-ua'] = global_ua if global_ua != '0'
          Value['external-ui'] = '/usr/share/openclash/ui'
          Value['external-ui-name'] = default_dashboard

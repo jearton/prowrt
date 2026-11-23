@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "tests": [
+    {
+      "blocked": "223.5.5.5",
+      "remaining": "101.226.4.6",
+      "elapsed_ms": 172.8,
+      "query": {
+        "domain": "checkip.amazonaws.com",
+        "type": "A",
+        "tcp": false,
+        "rcode": "NOERROR",
+        "answers": [
+          "54.151.167.241",
+          "47.128.197.226",
+          "13.251.36.15",
+          "52.221.157.41",
+          "52.77.159.47",
+          "54.255.99.57",
+          "56.10.156.169",
+          "47.130.121.43"
+        ],
+        "ad": false
+      }
+    },
+    {
+      "blocked": "101.226.4.6",
+      "remaining": "223.5.5.5",
+      "elapsed_ms": 147.5,
+      "query": {
+        "domain": "checkip.amazonaws.com",
+        "type": "A",
+        "tcp": false,
+        "rcode": "NOERROR",
+        "answers": [
+          "3.209.192.90",
+          "184.196.36.131",
+          "100.27.94.95",
+          "3.234.13.61",
+          "98.89.146.47",
+          "3.217.188.107",
+          "100.62.134.110",
+          "54.196.217.76"
+        ],
+        "ad": false
+      }
+    }
+  ],
+  "restored": true
+}
