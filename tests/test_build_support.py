@@ -37,6 +37,9 @@ class BuildSupport(unittest.TestCase):
         (self.repo / 'VERSION').write_text('25.12.6-20261123.1\n')
         (self.repo / 'sources.lock.json').write_bytes((REPO / 'sources.lock.json').read_bytes())
         (self.repo / 'profiles/network-ui.config').write_text('CONFIG_CCACHE=y\nCONFIG_CCACHE_DIR=""\nCONFIG_DOWNLOAD_FOLDER=""\n')
+        ui = Path('sources/full/package/custom/luci-app-openclash/ui.lock.json')
+        (self.repo / ui).parent.mkdir(parents=True)
+        (self.repo / ui).write_bytes((REPO / ui).read_bytes())
         subprocess.run(['git', 'init', '-q', str(self.repo)], check=True)
         subprocess.run(['git', '-C', str(self.repo), 'add', '.'], check=True)
         subprocess.run(['git', '-C', str(self.repo), '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid',
@@ -69,6 +72,14 @@ class BuildSupport(unittest.TestCase):
         config = self.repo / 'profiles/network-ui.config'
         config.write_text(config.read_text() + 'CONFIG_TARGET_x86=y\n')
         self.assertNotEqual(cache.cache_keys(self.repo), before)
+
+    def test_dashboard_only_update_changes_firmware_identity_not_compiler_namespace(self):
+        before = cache.cache_keys(self.repo)
+        input_hash = metadata.inputs(self.repo)[2]
+        ui = self.repo / 'sources/full/package/custom/luci-app-openclash/ui.lock.json'
+        ui.write_text(ui.read_text() + '\n')
+        self.assertEqual(cache.cache_keys(self.repo), before)
+        self.assertNotEqual(metadata.inputs(self.repo)[2], input_hash)
 
     def test_cache_is_external_and_does_not_restore_old_tree(self):
         config = self.repo / 'profiles/network-ui.config'

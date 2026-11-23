@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "zashboard": {
+    "version": "3.30.0",
+    "tag": "v3.30.0",
+    "commit": "bf4f00bb8d905f8a78f627af7cf84457c4db53c4",
+    "url": "https://github.com/Zephyruso/zashboard/releases/download/v3.30.0/dist.zip",
+    "archive": "zashboard-v3.30.0.zip",
+    "sha256": "1f91c014e61e768240a86ad0a9bd565b247ec5a0e26b125fb5d19076682905b7",
+    "format": "zip",
+    "strip_prefix": "dist"
+  },
+  "metacubexd": {
+    "version": "1.276.0",
+    "tag": "v1.276.0",
+    "commit": "eee6f10da61f77ec27bf3f50055a1b51a65afab1",
+    "url": "https://github.com/MetaCubeX/metacubexd/releases/download/v1.276.0/compressed-dist.tgz",
+    "archive": "metacubexd-v1.276.0.tgz",
+    "sha256": "8ed5b1e312136a161eb7bbbfc2c4d7dc95217487d0873739668d897ed366af9c",
+    "format": "tar.gz",
+    "strip_prefix": ""
+  }
+}

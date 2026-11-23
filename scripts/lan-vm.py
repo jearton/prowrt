@@ -264,6 +264,10 @@ if __name__ == "__main__":
         actual = json.loads(guest.run("prowrt-version --json"))
         metadata.verify(Path(__file__).resolve().parent.parent, actual)
         assert guest.run("prowrt-version --short").strip() == actual["version"]
+        panels = json.loads(guest.run("cat /usr/share/prowrt/openclash-ui.json"))
+        for name in ('zashboard', 'metacubexd'):
+            assert panels[name]['version'] == actual['dashboards'][name]['version']
+            assert panels[name]['sha256'] == actual['dashboards'][name]['sha256']
         guest.run("test -r /rom/usr/share/prowrt/build.json\n"
                   "test -r /www/luci-static/resources/view/status/include/05_prowrt.js\n"
                   "test -r /usr/share/rpcd/acl.d/prowrt-version.json")

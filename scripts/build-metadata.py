@@ -26,9 +26,17 @@ def inputs(repo):
     if not version.startswith(lock["release"] + "-"):
         raise ValueError("VERSION does not match the locked OpenWrt base")
     digest = hashlib.sha256()
-    for path in sorted([*repo.glob("*.lock.json"), repo / "profiles/network-ui.config"]):
+    ui_lock = repo / "sources/full/package/custom/luci-app-openclash/ui.lock.json"
+    for path in sorted([*repo.glob("*.lock.json"), repo / "profiles/network-ui.config", ui_lock]):
         digest.update(str(path.relative_to(repo)).encode() + b"\0" + path.read_bytes() + b"\0")
     return version, lock, digest.hexdigest()
+
+
+def dashboard_versions(repo):
+    path = repo / "sources/full/package/custom/luci-app-openclash/ui.lock.json"
+    lock = json.loads(path.read_text())
+    return {name: {key: lock[name][key] for key in ("version", "tag", "commit", "sha256")}
+            for name in ("zashboard", "metacubexd")}
 
 
 def generate(repo):
@@ -47,6 +55,7 @@ def generate(repo):
         "openwrt_version": lock["release"], "openwrt_revision": lock["source"]["revision"],
         "openwrt_commit": lock["source"]["commit"], "target": lock["target"],
         "inputs_sha256": input_hash,
+        "dashboards": dashboard_versions(repo),
         "build_origin": "github-actions" if os.environ.get("GITHUB_ACTIONS") == "true" else "local",
         "ci_run_id": os.environ.get("GITHUB_RUN_ID", ""),
         "ci_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
@@ -60,6 +69,7 @@ def verify(repo, metadata, tag=None, revision=None):
                 "source_dirty": False, "target": lock["target"],
                 "openwrt_version": lock["release"], "openwrt_commit": lock["source"]["commit"],
                 "openwrt_revision": lock["source"]["revision"], "inputs_sha256": input_hash}
+    expected["dashboards"] = dashboard_versions(repo)
     for key, value in expected.items():
         if metadata.get(key) != value:
             raise ValueError(f"Firmware metadata mismatch for {key}: {metadata.get(key)!r} != {value!r}")

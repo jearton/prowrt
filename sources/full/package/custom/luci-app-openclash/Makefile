@@ -2,12 +2,30 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
 PKG_VERSION:=0.48.002
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
 include $(INCLUDE_DIR)/package.mk
+
+UI_PREPARE:=python3 $(CURDIR)/prepare-ui.py
+
+define Download/zashboard
+  FILE:=$(shell $(UI_PREPARE) field --component zashboard --field archive)
+  URL:=$(shell $(UI_PREPARE) field --component zashboard --field url_base)
+  URL_FILE:=$(shell $(UI_PREPARE) field --component zashboard --field url_file)
+  HASH:=$(shell $(UI_PREPARE) field --component zashboard --field sha256)
+endef
+$(eval $(call Download,zashboard))
+
+define Download/metacubexd
+  FILE:=$(shell $(UI_PREPARE) field --component metacubexd --field archive)
+  URL:=$(shell $(UI_PREPARE) field --component metacubexd --field url_base)
+  URL_FILE:=$(shell $(UI_PREPARE) field --component metacubexd --field url_file)
+  HASH:=$(shell $(UI_PREPARE) field --component metacubexd --field sha256)
+endef
+$(eval $(call Download,metacubexd))
 
 define Package/$(PKG_NAME)/config
 	config PACKAGE_kmod-inet-diag
@@ -55,6 +73,7 @@ endef
 define Build/Prepare
 	$(CP) $(CURDIR)/root $(PKG_BUILD_DIR)
 	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)
+	$(UI_PREPARE) install --downloads "$(DL_DIR)" --root "$(PKG_BUILD_DIR)/root"
 	# Replace the @OPENCLASH_VERSION@ token with the package version (browser asset cache keys).
 	sed -i 's|@OPENCLASH_VERSION@|$(PKG_VERSION)|g' $(PKG_BUILD_DIR)/luasrc/openclash.lua $(PKG_BUILD_DIR)/luasrc/view/openclash/*.htm
 	$(foreach po,$(wildcard ${CURDIR}/po/zh-cn/*.po), \

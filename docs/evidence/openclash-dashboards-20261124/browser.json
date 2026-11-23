@@ -1,0 +1,77 @@
+{
+  "core": {
+    "meta": true,
+    "version": "v1.19.34"
+  },
+  "connections": 2250,
+  "measurements": {
+    "zashboard-legacy": {
+      "seconds": 12,
+      "longTasks": [
+        {
+          "start": 17775.300000190735,
+          "duration": 1214
+        },
+        {
+          "start": 19002.10000014305,
+          "duration": 1267
+        },
+        {
+          "start": 20281.5,
+          "duration": 1243
+        },
+        {
+          "start": 21537.900000095367,
+          "duration": 1202
+        },
+        {
+          "start": 22754,
+          "duration": 1196
+        },
+        {
+          "start": 23962.200000047684,
+          "duration": 1204
+        },
+        {
+          "start": 25178.200000047684,
+          "duration": 1219
+        },
+        {
+          "start": 26408.800000190735,
+          "duration": 1234
+        },
+        {
+          "start": 27654.60000014305,
+          "duration": 1250
+        }
+      ],
+      "over500ms": 9,
+      "maximumMs": 1267
+    },
+    "zashboard": {
+      "seconds": 12,
+      "longTasks": [],
+      "over500ms": 0,
+      "maximumMs": 0
+    },
+    "metacubexd": {
+      "seconds": 12,
+      "longTasks": [],
+      "over500ms": 0,
+      "maximumMs": 0
+    }
+  },
+  "cacheMigration": {
+    "oldEntry": "./assets/index-DnsHUhFc.js",
+    "newEntry": "./assets/index-dYB51AKU.js",
+    "localStoragePreserved": true,
+    "hardRefreshRequired": false
+  },
+  "environment": "Mac Google Chrome headless, isolated browser contexts, external HTTP blocked, real loopback-only Mihomo fixture on Linux",
+  "scope": "Panel connection, 12-second steady performance and retained-browser cache migration; not final firmware VM acceptance",
+  "panel_versions": {
+    "zashboard": "3.30.0",
+    "metacubexd": "1.276.0",
+    "legacy_zashboard": "1.48.0"
+  }
+}
