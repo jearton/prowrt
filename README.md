@@ -46,10 +46,96 @@
 
 ### 本项目的补丁和调整
 
-- **Netdata**补上容器网卡采集器和配套脚本，修正配置权限，LuCI 默认加载预置 System Overview；初始化浏览器原生 Dashboard，保留个人布局，限制资源为本地来源；分别显示物理口、网桥、VLAN、虚拟接口、bond 及其成员的流量，新增接口自动发现。
-- **LuCI**修正文件管理器布局和 iptables 后端识别，调整 DHCP/DNS、Macvlan 和实时监控的菜单入口。
-- **启动和首页**默认禁用 IPv6。Netdata 和 ttyd 随系统启动并监听 LAN。网页终端先校验 LuCI 会话和 WebSocket 来源，再要求每次输入系统用户名、密码；空密码不放行，并按窗口剩余高度展开。Quickstart 隐藏存储、下载和远程域名卡片。
-- **打包和兼容性**调整 Tailscale 配置文件归属、FileTransfer 的 APK 支持、EQoS 的 x86 构建、EQoS Plus 的 Bash 依赖、mwan3 的构建依赖，并固定 Technitium、Mihomo、DDNS-GO 和 Go 的构建输入。
+以下分别列出源码补丁、随包页面和固件默认配置；不是每项都通过 `.patch` 文件实现。
+
+#### Netdata 实时监控
+
+- **网卡采集器**：补入 `cgroup-network` 及配套脚本，用于采集容器网络接口。
+- **配置读取权限**：修正 Netdata 配置文件权限，使服务运行用户可以读取。
+- **菜单和标题**：将菜单名称与页面标题统一为“实时监控”。
+- **默认概览**：LuCI 默认进入新版原生 Dashboard 的 System Overview，预置六仪表及 CPU、内存、磁盘、网络、传感器分组。
+- **新浏览器初始化**：从固件内置模板初始化原生 Dashboard，无需云账号、联网或手工导入布局。
+- **个人布局保留**：保留原生编辑器保存的布局，包括主动清空的布局；不同浏览器的个人修改独立保存。
+- **存储异常回退**：浏览器禁止存储或遇到未知缓存格式时显示恢复入口，保留已有记录。
+- **逐接口实时表格**：分别展示物理口、网桥、VLAN、虚拟接口、bond 聚合口和成员口的实时收发、包速率、丢包及状态。
+- **逐接口历史曲线**：按接口分别绘制 RX、TX 曲线，新增接口自动发现；不将不同网络层的重复流量相加。
+- **接口采集范围**：保留 `lo`、IFB 等默认会被跳过的接口。
+- **本机节点绑定**：Agent 身份变化时更新预置接口函数卡的本机绑定，保留个人布局。
+- **本地资源**：通过 CSP 限制页面资源来源，并补齐随包字体路径，支持离线显示。
+
+实现文件和兼容性边界见 [Netdata 概览验收](docs/netdata-overview-acceptance-20261120.md)。
+
+#### 网页终端
+
+- **LuCI 会话校验**：进入 ttyd 前校验管理员登录态和访问权限。
+- **WebSocket 来源校验**：检查终端连接的 Origin。
+- **系统账号认证**：每次打开终端都要求输入系统用户名和密码，不自动登录 shell。
+- **空密码限制**：拒绝空密码账号进入网页终端。
+- **证书适配**：兼容 LuCI 使用的 DER、PEM 证书格式。
+- **Chrome HTTPS 兼容**：LuCI TLS 终端监听只协商 HTTP/1.1，避开 HTTP/2 WebSocket 的 Origin 误拒绝。
+- **入口协议适配**：LuCI 终端入口复用当前协议、主机和会话路径。
+- **终端高度**：按窗口剩余高度展开输入区域，减少底部留白。
+
+实现文件见 [ttyd 补丁](patches/custom-ipv4/ttyd-luci-session.patch)和 [LuCI 终端页面](image-files/network-ui/www/luci-static/resources/view/ttyd/term.js)。
+
+#### LuCI、主题和首页
+
+- **文件管理布局**：调整路径栏、按钮、标签和表格宽度，改善窄窗口及权限、修改时间列的显示。
+- **防火墙告警识别**：区分 iptables 的 nftables 后端与真正的 legacy 规则，避免将前者误报为旧版规则。
+- **DHCP/DNS 快捷页面**：增加沿用 OpenWrt 原生配置接口的快捷入口。
+- **Macvlan 快捷页面**：增加沿用 netifd 的接口配置入口。
+- **菜单布局和翻译**：通过菜单覆盖文件及中文翻译调整入口、名称和排序，参考杭州办公室的布局。
+- **默认主题**：首启选用 Argon，并设置 Bing 在线壁纸来源。
+- **首页存储卡片**：隐藏 Quickstart 的存储服务卡片。
+- **首页下载卡片**：隐藏 Quickstart 的下载服务卡片。
+- **首页远程域名卡片**：隐藏 Quickstart 的远程域名卡片。
+
+实现文件见 [LuCI 补丁](patches/README.md)、[菜单和页面覆盖](image-files/network-ui)及[首启配置](sources/full/files/etc/uci-defaults/92-custom-ipv4)。
+
+#### DNS 和固件默认行为
+
+- **IPv6**：通过启动参数 `ipv6.disable=1` 默认禁用。
+- **Netdata 自启**：默认随系统启动，并提供 LAN 访问入口。
+- **ttyd 自启**：默认随系统启动，并限制为 LAN 管理入口。
+- **Technitium 原生集成**：固定独立项目的源码提交，集成 DNS Server、Console、.NET 运行时及 LuCI 管理页面。
+- **主 DNS**：首启启用 Technitium，监听 IPv4 53 端口。
+- **默认上游**：首启设置 AliDNS DoH；与 DNSSEC 校验相关的已知失败项仍未修复，见 [DNSSEC 验收记录](docs/vm-extended-validation-20261120.md#默认-dnssec-未通过项)。
+- **广告过滤默认值**：首启启用 Technitium blocking，并使用 NXDOMAIN 拦截响应。
+- **dnsmasq 分工**：保留 DHCP，将 DNS 监听移到内部 5353 端口，供租约设备名解析使用。
+- **租约名转发**：为 `lan` 和首启 LAN 对应的 IPv4 `/24` 反向区创建到 dnsmasq 的转发。
+- **Advanced Forwarding**：随包提供并在首启安装扩展，为 DNS 分流提供基础。
+- **强制 LAN DNS**：将 LAN 的 IPv4 TCP/UDP 53 请求重定向至本机，保留客户端源 IP；升级时保留管理员对该规则的启停选择。
+- **DHCP 下发 DNS**：LAN 未配置 DNS 选项时，补充下发路由器地址。
+- **OpenClash DNS 接管**：默认关闭 OpenClash 自身的 DNS 重定向，避免与 Technitium 入口重复接管。
+- **内部 DNS 端口保护**：防火墙拒绝客户端直接访问 5353、7874 端口。
+- **WAN 访问保护**：防火墙拒绝从 WAN 访问 Technitium 的 53、5380 端口。
+- **AdGuard Home 备用**：保留软件包，默认停用。
+- **Docker 移除**：不集成 Docker、Compose、containerd、runc 及 Dockerman，构建时检查无残留启用项。
+- **可选服务默认停用**：OpenClash、DDNS-GO、Tailscale、mwan3、OAF、UnblockNeteaseMusic 和 SQM 默认不自启，按实际需求配置启用。
+
+实现文件见 [Technitium 首启策略](sources/full/files/usr/libexec/technitium-provision)、[DNS 和防火墙默认值](sources/full/files/etc/uci-defaults/93-technitium-dns)及[构建配置](profiles/network-ui.config)。
+
+#### 打包和构建兼容性
+
+- **Tailscale 文件归属**：将配置文件与服务脚本的安装归属统一到管理包，避免与核心包重复安装。
+- **Tailscale 构建路径**：修正自定义目录下的 Go 构建规则引用。
+- **FileTransfer APK 安装**：将原有 IPK/opkg 安装入口改为 APK/apk。
+- **FileTransfer 文件处理**：校验上传文件名、拒绝符号链接覆盖，并对 shell 参数和页面输出转义。
+- **EQoS x86 依赖**：去掉 x86 不适用的 QCA NSS 依赖。
+- **EQoS Plus 运行依赖**：补充 Bash 依赖。
+- **mwan3 构建依赖**：修正 `libnetfilter-conntrack` 的依赖名称。
+- **Arpbind 构建路径**：固定引用所选 LuCI feed 的 `luci.mk`。
+- **Autoreboot 构建路径**：固定引用所选 LuCI feed 的 `luci.mk`。
+- **FileTransfer 构建路径**：固定引用所选 LuCI feed 的 `luci.mk`。
+- **Ramfree 构建路径**：固定引用所选 LuCI feed 的 `luci.mk`。
+- **Technitium 构建输入**：通过独立项目的锁文件固定源码提交。
+- **Mihomo 构建输入**：使用固定配方预装核心。
+- **DDNS-GO 构建输入**：固定版本和源码摘要。
+- **Go 工具链输入**：固定版本和源码摘要。
+- **公开文件权限**：固定构建 umask，归一化公开 overlay 的目录、可执行文件和普通文件权限。
+- **根文件系统权限检查**：检查 squashfs 目录能被非 root 服务遍历，同时保留私有文件权限。
+- **软件包清单检查**：逐项核对包名、版本和允许的版本差异。
+- **内核 ABI 检查**：逐项核对内核模块与镜像内核的 ABI。
 
 对应文件和应用位置见 [定制补丁索引](patches/README.md)。
 
