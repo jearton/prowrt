@@ -109,3 +109,9 @@ r6 只在 LuCI 授权的 TLS 监听设置 ALPN 为 http/1.1，保留来源、LuC
 
 
 修复后的[旧镜像初始化回归 44577868930](https://github.com/jearton/prowrt/actions/runs/44577868930)已通过，耗时 3 分 57 秒，完成每次终端登录、空密码拒绝、DNS 接管、源 IP 保留和规则关闭/恢复检查。该回归仍不替代正式镜像的 Mac 验收。正式镜像的[GHCR 发布与摘要回拉校验](https://github.com/jearton/prowrt/actions/runs/44578122539)也已通过，公开不可变引用见[发布文档](releases.md)。
+
+## 2026-11-23 ProWrt 改名后的回归底座
+
+[45121852164](https://github.com/jearton/prowrt/actions/runs/45121852164) 已成功从改名仓库下载旧镜像，并通过独立 `luci-app-technitium` 发布包校验；随后外部 `px5g-mbedtls-13.apk` 与原固定 SHA256 不符，任务在启动 VM 前退出。不能把该失败记为固件启动失败。
+
+回归底座更新为保留的 `v25.12.6-20261120.2` Release，镜像 SHA256 为 `c0f28710b3f6430699772bf9b8d4f9cd888e88aafd7e4d71e4f681f0982dff11`。该镜像已包含从固定源码构建的证书工具，因此移除外部 px5g/OpenSSL APK 下载；仍独立下载、校验并安装三个 Technitium APK，清空 DNS 状态后重启复验初始化。原有 DNS、重定向、HTTP/HTTPS、终端登录与权限断言保留。历史 Release 及其附件不作修改。

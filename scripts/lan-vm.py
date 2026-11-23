@@ -105,7 +105,7 @@ until test -e /etc/technitium/provisioned; do sleep 1; done
 mkdir -p /tmp/technitium-test
 """, timeout=150)
     apks = list(packages.glob("*.apk"))
-    assert len(apks) == 6  # Three Technitium APKs and certificate tools for the old image.
+    assert len(apks) == 3  # Technitium APKs; certificate tools are in the pinned image.
     guest.upload(apks)
     # These two source files share a basename, so stream them to distinct paths.
     for source, target in [("etc/init.d/technitium-provision", "/etc/init.d/technitium-provision"),

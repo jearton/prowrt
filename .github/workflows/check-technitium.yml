@@ -37,28 +37,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p "$RUNNER_TEMP/technitium-apks"
-          gh release download v25.12.6-20261118 --repo "$GITHUB_REPOSITORY" \
+          gh release download v25.12.6-20261120.2 --repo "$GITHUB_REPOSITORY" \
             --pattern openwrt-x86-64-generic-squashfs-combined-efi.img.gz --dir "$RUNNER_TEMP"
-          printf '%s  %s\n' 676599499413774b57b0f728a16d00a2929e2234ac6be9693705b083471638cf \
+          printf '%s  %s\n' c0f28710b3f6430699772bf9b8d4f9cd888e88aafd7e4d71e4f681f0982dff11 \
             "$RUNNER_TEMP/openwrt-x86-64-generic-squashfs-combined-efi.img.gz" | sha256sum --strict -c -
           gh release download v1.1.0 --repo jearton/luci-app-technitium \
             --pattern '*.apk' --pattern SHA256SUMS --pattern packages.adb --dir "$RUNNER_TEMP/technitium-apks"
           (cd "$RUNNER_TEMP/technitium-apks" && sha256sum --strict -c SHA256SUMS)
-          # The old regression image did not include a TLS certificate generator.
-          # This helper is test-only; the final image builds px5g from its pinned OpenWrt source.
-          curl -fLsS --retry 3 --max-time 60 \
-            https://downloads.openwrt.org/releases/25.12.6/packages/x86_64/base/px5g-mbedtls-13.apk \
-            -o "$RUNNER_TEMP/technitium-apks/px5g-mbedtls-13.apk"
-          printf '%s  %s\n' 76cd0142c88ee9c8d41d733419e764f47b1a6a147382f74a43e50be457d2faea \
-            "$RUNNER_TEMP/technitium-apks/px5g-mbedtls-13.apk" | sha256sum --strict -c -
-          for package in openssl-util libopenssl-conf; do
-            curl -fLsS --retry 3 --max-time 60 \
-              "https://downloads.openwrt.org/releases/25.12.6/packages/x86_64/base/$package-3.5.9-r1.apk" \
-              -o "$RUNNER_TEMP/technitium-apks/$package-3.5.9-r1.apk"
-          done
-          printf '%s  %s\n' \
-            f975772e376ce05c46efbc4f4f2bee1575109454cb928333b65010dd526b1783 "$RUNNER_TEMP/technitium-apks/openssl-util-3.5.9-r1.apk" \
-            d97dec1fd2eb9cddd5281989ccb8708c7c1de557d625aad39b5af3ebfd9d86d9 "$RUNNER_TEMP/technitium-apks/libopenssl-conf-3.5.9-r1.apk" | sha256sum --strict -c -
+          # The immutable regression image already contains px5g and OpenSSL tools.
+          # Keep certificate dependencies inside the checksum-pinned image.
           mkdir -p "$RUNNER_TEMP/ttyd-test/utils/ttyd/files"
           curl -fLsS --retry 3 --max-time 60 \
             https://raw.githubusercontent.com/openwrt/packages/093d551675b1119a06ef224d419905e8d6b2af1a/utils/ttyd/files/ttyd.init \
