@@ -80,7 +80,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          ref="ghcr.io/${GITHUB_REPOSITORY,,}/firmware:ci-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          ref="ghcr.io/${GITHUB_REPOSITORY,,}:ci-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           image=openwrt-x86-64-generic-squashfs-combined-efi.img.gz
           manifest=openwrt-x86-64-generic.manifest
           printf '%s' "$GH_TOKEN" | oras login ghcr.io -u "$GITHUB_ACTOR" --password-stdin

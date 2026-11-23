@@ -54,7 +54,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          ref="ghcr.io/${GITHUB_REPOSITORY,,}/firmware:$RELEASE_TAG"
+          ref="ghcr.io/${GITHUB_REPOSITORY,,}:$RELEASE_TAG"
           revision=$(git rev-parse HEAD)
           printf '%s' "$GH_TOKEN" | oras login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
           (
@@ -79,7 +79,7 @@ jobs:
         run: |
           registry_config="$RUNNER_TEMP/ghcr-anonymous.json"
           printf '{"auths":{}}\n' > "$registry_config"
-          ref="ghcr.io/${GITHUB_REPOSITORY,,}/firmware:$RELEASE_TAG"
+          ref="ghcr.io/${GITHUB_REPOSITORY,,}:$RELEASE_TAG"
           digest=$(oras resolve "$ref" --registry-config "$registry_config")
           immutable_ref="${ref%:*}@$digest"
           env -u ORAS_CACHE oras pull "$immutable_ref" \
