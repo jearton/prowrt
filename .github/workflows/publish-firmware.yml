@@ -9,6 +9,10 @@ on:
         description: Published release tag, matching an existing Git tag
         required: true
         type: string
+      verify_only:
+        description: Verify the public artifact without publishing again
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -46,6 +50,7 @@ jobs:
         with:
           version: 1.3.0
       - name: Publish and verify the OCI artifact
+        if: ${{ !inputs.verify_only }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -69,3 +74,15 @@ jobs:
           oras pull "$immutable_ref" --output published
           ./scripts/verify-firmware.sh published
           printf '### Verified firmware\n\n`oras pull %s`\n' "$immutable_ref" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify public anonymous download
+        run: |
+          registry_config="$RUNNER_TEMP/ghcr-anonymous.json"
+          printf '{"auths":{}}\n' > "$registry_config"
+          ref="ghcr.io/${GITHUB_REPOSITORY,,}/firmware:$RELEASE_TAG"
+          digest=$(oras resolve "$ref" --registry-config "$registry_config")
+          immutable_ref="${ref%:*}@$digest"
+          env -u ORAS_CACHE oras pull "$immutable_ref" \
+            --registry-config "$registry_config" --output anonymous
+          ./scripts/verify-firmware.sh anonymous
+          printf '### Anonymous download verified\n\n`oras pull %s`\n' "$immutable_ref" >> "$GITHUB_STEP_SUMMARY"
