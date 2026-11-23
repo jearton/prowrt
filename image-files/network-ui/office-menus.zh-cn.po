@@ -24,3 +24,15 @@ msgstr "打开「接口」，切换到「设备」，然后添加 MAC VLAN 设�
 
 msgid "Container Management"
 msgstr "容器管理"
+
+msgid "Source revision"
+msgstr "源码提交"
+
+msgid "Source time"
+msgstr "源码时间"
+
+msgid "Build target"
+msgstr "构建目标"
+
+msgid "Build origin"
+msgstr "构建来源"

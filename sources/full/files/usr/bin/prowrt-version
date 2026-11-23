@@ -1,0 +1,22 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Prefer the current squashfs image over any restored writable overlay.
+metadata=/rom/usr/share/prowrt/build.json
+[ -r "$metadata" ] || metadata=/usr/share/prowrt/build.json
+if [ ! -r "$metadata" ]; then
+    echo 'ProWrt version: unknown (firmware metadata is missing)' >&2
+    exit 1
+fi
+case "${1:-}" in
+    --json) cat "$metadata" ;;
+    --short) jsonfilter -i "$metadata" -e '@.version' ;;
+    '')
+        printf 'ProWrt %s\n' "$(jsonfilter -i "$metadata" -e '@.version')"
+        printf 'Source: %s\n' "$(jsonfilter -i "$metadata" -e '@.source_revision')"
+        printf 'OpenWrt: %s (%s)\n' "$(jsonfilter -i "$metadata" -e '@.openwrt_version')" "$(jsonfilter -i "$metadata" -e '@.openwrt_revision')"
+        printf 'Target: %s\n' "$(jsonfilter -i "$metadata" -e '@.target')"
+        printf 'Source time: %s\n' "$(jsonfilter -i "$metadata" -e '@.source_time')"
+        printf 'Build: %s / run %s / attempt %s\n' "$(jsonfilter -i "$metadata" -e '@.build_origin')" "$(jsonfilter -i "$metadata" -e '@.ci_run_id')" "$(jsonfilter -i "$metadata" -e '@.ci_run_attempt')"
+        ;;
+    *) echo 'Usage: prowrt-version [--short|--json]' >&2; exit 2 ;;
+esac

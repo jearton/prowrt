@@ -13,6 +13,35 @@ out="$(realpath -m -- "$2")"
 recipes="$repo/sources/full/package/custom"
 patches="$repo/patches/custom-ipv4"
 ui="$repo/packages/istoreos-ui-2026110611"
+metrics="${OPENWRT_METRICS_DIR:-${out}.metrics}"
+stage=source-and-feeds
+stage_started=$SECONDS
+python3 "$repo/scripts/build-metrics.py" "$metrics"
+stage_end() {
+    python3 "$repo/scripts/build-metrics.py" "$metrics" "$stage" "$((SECONDS - stage_started))"
+}
+stage_start() {
+    stage_end
+    stage=$1
+    stage_started=$SECONDS
+}
+finish() {
+    result=$?
+    trap - EXIT
+    if [[ -n $stage ]]; then
+        state=success
+        [[ $result == 0 ]] || state=failure
+        python3 "$repo/scripts/build-metrics.py" "$metrics" "$stage" "$((SECONDS - stage_started))" --status "$state" || true
+    fi
+    if [[ -x $tree/staging_dir/host/bin/ccache ]]; then
+        "$tree/staging_dir/host/bin/ccache" --show-log-stats > "$metrics/ccache.txt" 2>&1 || true
+    fi
+    exit "$result"
+}
+trap finish EXIT
+export CCACHE_COMPILERCHECK=content
+export CCACHE_MAXSIZE=2G
+export CCACHE_STATSLOG="$metrics/ccache-stats.log"
 
 readarray -t source < <(python3 - "$repo/sources.lock.json" <<'PY'
 import json, sys
@@ -31,6 +60,11 @@ for feed in json.load(open(sys.argv[1]))["feeds"]:
 PY
 ./scripts/feeds update -a
 ./scripts/feeds install -a
+stage_start custom-packages-and-overlay
+cp "$repo/profiles/network-ui.config" .config
+if [[ -n ${OPENWRT_CACHE_ROOT:-} ]]; then
+    python3 "$repo/scripts/build-cache.py" configure .config "$OPENWRT_CACHE_ROOT" "$tree" "$out"
+fi
 
 for package in "$recipes"/* netdata quickstart luci-app-quickstart luci-i18n-quickstart-zh-cn luci-app-weechat; do
     name=$(basename "$package")
@@ -47,9 +81,10 @@ cp -a "$recipes/." "$repo/packages/netdata" package/custom/
 "$repo/scripts/prepare-technitium-luci.sh" package/custom
 cp -a "$repo/sources/full/files/." files/
 cp -a "$repo/image-files/network-ui/usr" "$repo/image-files/network-ui/www" files/
+python3 "$repo/scripts/build-metadata.py" generate files/usr/share/prowrt/build.json
 
 mkdir -p .ui-inputs
-python3 - "$ui" "$tree" <<'PY'
+python3 - "$ui" "$tree" "$repo/scripts/build-cache.py" "${OPENWRT_CACHE_ROOT:-}" <<'PY'
 import hashlib, json, pathlib, subprocess, sys, tempfile
 ui = pathlib.Path(sys.argv[1])
 tree = pathlib.Path(sys.argv[2])
@@ -57,8 +92,11 @@ meta = json.loads((ui / "ui-source.json").read_text())
 base = "https://dl.istoreos.com/iStoreOS/x86_64_efi/"
 with tempfile.TemporaryDirectory(dir=tree / ".ui-inputs") as path:
     source = pathlib.Path(path)
-    gz = source / "image.gz"
-    subprocess.run(["curl", "-fLsS", "--retry", "3", "--max-time", "600", base + meta["image"], "-o", str(gz)], check=True)
+    cache = pathlib.Path(sys.argv[4]) / "assets" if sys.argv[4] else source / "cache"
+    gz = pathlib.Path(subprocess.check_output([
+        sys.executable, sys.argv[3], "fetch", base + meta["image"], meta["sha256"], str(cache),
+    ], text=True).strip())
+    (source / "image.gz").symlink_to(gz.resolve())
     with gz.open("rb") as artifact:
         if hashlib.file_digest(artifact, "sha256").hexdigest() != meta["sha256"]:
             raise SystemExit("Unexpected iStoreOS archive SHA-256")
@@ -97,7 +135,7 @@ find files -type f -name '._*' -delete
 find files -type d -exec chmod 0755 {} +
 find files -type f -perm -u=x -exec chmod 0755 {} +
 find files -type f ! -perm -u=x -exec chmod 0644 {} +
-cp "$repo/profiles/network-ui.config" .config
+stage_start configuration
 make defconfig
 grep -Fx CONFIG_USE_APK=y .config
 grep -Fx 'CONFIG_GRUB_BOOTOPTS="ipv6.disable=1"' .config
@@ -115,9 +153,12 @@ if grep -E '^CONFIG_PACKAGE_(docker|dockerd|docker-compose|containerd|runc|tini|
 fi
 jobs="${OPENWRT_JOBS:-$(nproc)}"
 export GOPROXY='https://proxy.golang.org|direct'
+stage_start downloads
 make -j"$jobs" download
+stage_start compilation
 make -j"$jobs" V=s 2>&1 | tee build.log | awk '/^time:/ { print; fflush() }' ||
     { tail -n 180 build.log; exit 1; }
+stage_start verification-and-export
 target=bin/targets/x86/64
 image=openwrt-x86-64-generic-squashfs-combined-efi.img.gz
 manifest=openwrt-x86-64-generic.manifest
@@ -125,6 +166,9 @@ gzip -t "$target/$image"
 rootfs=build_dir/target-x86_64_musl/linux-x86_64/root.squashfs
 unsquash=staging_dir/host/bin/unsquashfs4
 python3 "$repo/scripts/check-rootfs-permissions.py" "$unsquash" "$rootfs"
+"$unsquash" -cat "$rootfs" usr/share/prowrt/build.json > .ui-inputs/build.json
+cmp files/usr/share/prowrt/build.json .ui-inputs/build.json
+python3 "$repo/scripts/build-metadata.py" verify .ui-inputs/build.json
 "$unsquash" -cat "$rootfs" lib/apk/db/installed > .ui-inputs/installed
 python3 - "$repo/manifests/$manifest" "$target/$manifest" .ui-inputs/installed <<'PY'
 import re
@@ -172,4 +216,5 @@ print(f"Verified all {len(new)} package versions")
 PY
 mkdir -p "$out"
 cp "$target/$image" "$target/$manifest" "$out/"
-(cd "$out" && sha256sum -- "$image" "$manifest" > SHA256SUMS)
+cp .ui-inputs/build.json "$out/build.json"
+(cd "$out" && sha256sum -- "$image" "$manifest" build.json > SHA256SUMS)

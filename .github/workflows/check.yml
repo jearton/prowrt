@@ -52,6 +52,16 @@ jobs:
           python3 -c 'import ast; ast.parse(open("packages/netdata/prepare-overview.py").read())'
           node --check packages/netdata/files/overview/bootstrap.js
           node --check scripts/check-netdata-overview.cjs
+      - name: Check firmware identity and cache boundaries
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -qy --no-install-recommends squashfs-tools
+          python3 -m unittest discover -s tests -p 'test_build_support.py' -v
+          node tests/check-prowrt-status.cjs
+          sh -n sources/full/files/usr/bin/prowrt-version
+          python3 scripts/build-metadata.py generate "$RUNNER_TEMP/build.json"
+          python3 scripts/build-metadata.py verify "$RUNNER_TEMP/build.json"
+          test -x sources/full/files/usr/bin/prowrt-version
       - name: Check the pinned standalone Technitium packages
         run: |
           packages=$(mktemp -d)

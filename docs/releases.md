@@ -45,15 +45,18 @@ oras pull ghcr.io/jearton/openwrt-pro/firmware@sha256:18298a9616ea62f169e96cdfe7
 
 ## 持续集成
 
-推送到 main 或创建 PR 后，GitHub Actions 检查清单摘要、Netdata 补丁和 Compose 的回环端口映射。发布工作流下载对应 GitHub Release 的三个文件，用 Git tag 上的清单核对 SHA-256，检测 gzip 完整性，发布为 GHCR 同名版本，再按 OCI 摘要拉回核验。工作流摘要记录可直接使用的摘要引用。发布后再用空 registry 凭据配置匿名解析、按摘要拉取并复验；手动执行时可启用 `verify_only`，只检查已有公开制品，不重新推送或改写版本。
+推送到 main 或创建 PR 后，GitHub Actions 检查清单摘要、Netdata 补丁、构建缓存边界、固件身份检查和 Compose 的回环端口映射。完整构建加入持久下载与 ccache，输出阶段耗时，但不跳过完整编译和隔离启动检查。[缓存和版本机制](build-cache-and-version.md)
+
+新增版本机制的发布包包含镜像、APK 清单、`build.json` 和 `SHA256SUMS`。发布工作流核对外部校验和、gzip、tag / VERSION / 源码提交，并从实际磁盘根分区读取内嵌身份与附件比较；发布为 GHCR 同名版本后按 OCI 摘要拉回核验。历史 tag 使用各自原有的三文件流程。发布后再用空 registry 凭据配置匿名解析、按摘要拉取并复验；手动执行时可启用 `verify_only`，只检查已有公开制品，不重新推送或改写版本。
 
 ## 发布下一版
 
-1. 按[构建步骤](firmware.md)在 Linux 构建和验收固件。更新 `manifests/` 中的 APK 清单和两个 SHA-256 值，并推送对应 Git 提交。
-2. 对该提交创建版本 Git tag。下载名包含小写 `v` 前缀，例如 `v25.12.6-20261117`。
-3. 用同名 tag 创建 GitHub Release，将以下三个文件作为 Release 附件上传并发布：
+1. 在构建前修改 `VERSION`，提交本次源码和配置；从干净的提交按[构建步骤](firmware.md)在 Linux 构建和验收固件。构建产物内含该提交及版本。历史 `manifests/` 继续作为包版本基线，允许差异由构建脚本显式维护；新镜像的最终摘要使用构建产物自己的 `SHA256SUMS`，不要为写入镜像摘要再创建一个提交并把它误当成镜像源码。
+2. 对实际构建的同一个源码提交创建 `v` 加 `VERSION` 的 Git tag，例如 `v25.12.6-20261123.1`。不能把候选产物挂到另一个提交上发布。
+3. 用同名 tag 创建 GitHub Release，将同一次验收产物的以下四个文件原样上传并发布：
    - `openwrt-x86-64-generic-squashfs-combined-efi.img.gz`
    - `openwrt-x86-64-generic.manifest`
+   - `build.json`
    - `SHA256SUMS`
 4. 查看 **Publish ProWrt firmware to GHCR** 的 Actions 日志。重新发布已存在的 Release 可通过工作流的手动触发入口执行。新的固件内容使用新版本 tag。
 

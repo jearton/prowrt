@@ -7,6 +7,10 @@ on:
     paths:
       - '.github/workflows/build-firmware.yml'
       - 'scripts/build-full.sh'
+      - 'scripts/build-cache.py'
+      - 'scripts/build-metadata.py'
+      - 'scripts/build-metrics.py'
+      - 'VERSION'
       - 'scripts/check-rootfs-permissions.py'
       - 'scripts/prepare-technitium-luci.sh'
       - '*.lock.json'
@@ -34,8 +38,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set disposable build and persistent-cache paths
+        run: |
+          printf 'OPENWRT_CACHE_ROOT=%s/prowrt-cache\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+          printf 'OPENWRT_METRICS_DIR=%s/build-metrics\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+
       - name: Prepare the Linux build host
         run: |
+          started=$SECONDS
           sudo python3 - <<'PY'
           import shutil
           from pathlib import Path
@@ -50,9 +60,64 @@ jobs:
             python3-dev python3-setuptools rsync swig unzip zlib1g-dev \
             file gperf time zstd xz-utils squashfs-tools gnutls-bin
           df -h "$RUNNER_TEMP"
+          python3 scripts/build-metrics.py "$OPENWRT_METRICS_DIR" host-preparation "$((SECONDS-started))"
+
+      - name: Identify compatible cache inputs
+        id: cache-key
+        run: |
+          input_hash=$(python3 scripts/build-cache.py keys)
+          host_gcc=$(gcc -dumpfullversion)
+          printf 'prefix=prowrt-v1-%s-%s-gcc%s-%s\n' "$RUNNER_OS" "$RUNNER_ARCH" "$host_gcc" "$input_hash" >> "$GITHUB_OUTPUT"
+
+      - name: Restore verified download inputs
+        id: downloads
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ${{ env.OPENWRT_CACHE_ROOT }}/dl
+            ${{ env.OPENWRT_CACHE_ROOT }}/assets
+          key: prowrt-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: prowrt-downloads-v1-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Restore compatible compiler cache
+        id: ccache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ${{ env.OPENWRT_CACHE_ROOT }}/ccache
+          key: ${{ steps.cache-key.outputs.prefix }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ steps.cache-key.outputs.prefix }}-
 
       - name: Compile the complete x86/64 image
+        env:
+          PROWRT_CACHE_KEY: ${{ steps.cache-key.outputs.prefix }}
+          PROWRT_DL_CACHE_MATCH: ${{ steps.downloads.outputs.cache-matched-key }}
+          PROWRT_CCACHE_MATCH: ${{ steps.ccache.outputs.cache-matched-key }}
         run: ./scripts/build-full.sh "$RUNNER_TEMP/openwrt" "$RUNNER_TEMP/firmware"
+
+      - name: Bound reusable caches
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python3 scripts/build-cache.py trim "$OPENWRT_CACHE_ROOT"
+          CCACHE_DIR="$OPENWRT_CACHE_ROOT/ccache" CCACHE_MAXSIZE=2G \
+            "$RUNNER_TEMP/openwrt/staging_dir/host/bin/ccache" --cleanup
+
+      # Cache only public inputs and compiler objects, never staging_dir,
+      # build_dir, files/, firmware images, runtime state, credentials or keys.
+      - name: Save downloads for future builds
+        if: github.ref == 'refs/heads/main'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ${{ env.OPENWRT_CACHE_ROOT }}/dl
+            ${{ env.OPENWRT_CACHE_ROOT }}/assets
+          key: ${{ steps.downloads.outputs.cache-primary-key }}
+
+      - name: Save compiler cache for future builds
+        if: github.ref == 'refs/heads/main'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ${{ env.OPENWRT_CACHE_ROOT }}/ccache
+          key: ${{ steps.ccache.outputs.cache-primary-key }}
 
       - name: Preserve the compiled image before acceptance
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -70,7 +135,31 @@ jobs:
             sudo chown "$(id -u)" /dev/kvm
             test -r /dev/kvm && test -w /dev/kvm
           fi
-          bash scripts/check-fresh-lan.sh "$RUNNER_TEMP/firmware/openwrt-x86-64-generic-squashfs-combined-efi.img.gz"
+          started=$SECONDS
+          result=0
+          bash scripts/check-fresh-lan.sh "$RUNNER_TEMP/firmware/openwrt-x86-64-generic-squashfs-combined-efi.img.gz" || result=$?
+          state=success
+          [[ $result == 0 ]] || state=failure
+          python3 scripts/build-metrics.py "$OPENWRT_METRICS_DIR" isolated-boot "$((SECONDS-started))" --status "$state"
+          exit "$result"
+
+      - name: Preserve build timings and cache statistics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: build-metrics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.OPENWRT_METRICS_DIR }}/*.json
+            ${{ env.OPENWRT_METRICS_DIR }}/*.txt
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Summarize build timings
+        if: always()
+        run: |
+          if test -f "$OPENWRT_METRICS_DIR/build-metrics.json"; then
+            python3 scripts/build-metrics.py "$OPENWRT_METRICS_DIR" --summary >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1
         with:
@@ -90,7 +179,7 @@ jobs:
               --annotation "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
               --annotation "org.opencontainers.image.revision=$GITHUB_SHA" \
               --annotation "org.opencontainers.image.description=OpenWrt x86/64 CI candidate" \
-              "$image:application/gzip" "$manifest:text/plain" SHA256SUMS:text/plain
+              "$image:application/gzip" "$manifest:text/plain" build.json:application/json SHA256SUMS:text/plain
           )
           digest=$(oras manifest fetch --descriptor "$ref" | jq -er .digest)
           immutable_ref="${ref%:*}@$digest"

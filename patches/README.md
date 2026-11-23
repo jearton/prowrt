@@ -26,3 +26,16 @@
 - 后台“立即备份遗漏尚未落盘区域”仅[记录为原生限制](../docs/vm-validation-20261123.md)，用户决定暂不修改，因此没有对应后台补丁。
 
 上述条目是当前源码变更，须随最终镜像重新验收；不是历史发布镜像已自动升级的声明。
+
+## 构建缓存与固件身份
+
+- [版本入口](../VERSION)：单独维护 ProWrt 发布号，不改 OpenWrt 底座版本和 APK 软件源。
+- [固件元数据](../scripts/build-metadata.py)：构建时生成版本、源码提交、来源锁摘要和 CI 编号，禁止将脏目录作为正式构建发布。
+- [命令行查询](../sources/full/files/usr/bin/prowrt-version)：优先读取只读 `/rom` 的固件身份，避免旧配置备份覆盖版本显示。
+- [LuCI 概览](../image-files/network-ui/www/luci-static/resources/view/status/include/05_prowrt.js)：增加 ProWrt 区块，使用与 CLI 相同的版本记录；[ACL](../image-files/network-ui/usr/share/rpcd/acl.d/prowrt-version.json)仅允许读取公开元数据。
+- [下载缓存](../scripts/build-cache.py)：独立目录保存 OpenWrt 下载与 SHA-256 寻址的 iStoreOS UI 输入，保留原始摘要验证。
+- [编译缓存](../.github/workflows/build-firmware.yml)：ccache 跨次持久化、compiler content 检查、容量限制、按输入分区；仅 main 保存。
+- [耗时报告](../scripts/build-metrics.py)：记录分阶段耗时、失败状态、主机资源、缓存来源；本轮 ccache 统计随 CI 附件保留。
+- [发布检查](../scripts/check-build-identity.py)：不挂载磁盘，直接从组合镜像内的 squashfs 读取版本，与附件、tag 和源码提交比对。
+- [首次启动检查](../scripts/lan-vm.py)：从实际启动的镜像执行 `prowrt-version`，检查 CLI、LuCI include 和 ACL 存在。
+- 适用范围、操作与回滚见[维护说明](../docs/build-cache-and-version.md)。没有修改 Technitium 或 Console 源码。

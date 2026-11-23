@@ -69,6 +69,9 @@ if [[ -n ${FRESH_LAN_FIXTURE_APKS:-} ]]; then
     python3 "$repo/scripts/lan-vm.py" fixture "$test_dir" "$FRESH_LAN_FIXTURE_APKS" "$FRESH_LAN_FIXTURE_TTYD_INIT"
 fi
 python3 "$repo/scripts/lan-vm.py" check-ipv4 "$test_dir"
+if [[ -f $repo/VERSION && -z ${FRESH_LAN_FIXTURE_APKS:-} ]]; then
+    python3 "$repo/scripts/lan-vm.py" build-identity "$test_dir"
+fi
 
 fetch() {
     curl -fsSL --noproxy '*' --connect-timeout 2 --max-time 5 \
@@ -118,6 +121,16 @@ login "$luci_http" "$test_dir/http.cookies"
 python3 "$repo/scripts/check-ttyd-login.py" "$test_dir/http.cookies" "$test_dir/root-password" empty
 python3 "$repo/scripts/lan-vm.py" terminal-password "$test_dir"
 login "$luci_http" "$test_dir/http.cookies"
+if [[ -f $repo/VERSION && -z ${FRESH_LAN_FIXTURE_APKS:-} ]]; then
+    session=$(awk '$6 == "sysauth_http" { print $7 }' "$test_dir/http.cookies")
+    test -n "$session"
+    curl -fsS --noproxy '*' --connect-timeout 2 --max-time 5 \
+        --data-urlencode "sessionid=$session" --data-urlencode path=/rom/usr/share/prowrt/build.json \
+        "$luci_http/cgi-bin/cgi-download" -o "$test_dir/luci-build.json"
+    python3 "$repo/scripts/build-metadata.py" verify "$test_dir/luci-build.json"
+    fetch 80/luci-static/resources/view/status/include/05_prowrt.js "$test_dir/prowrt-status.js"
+    grep -q '/rom/usr/share/prowrt/build.json' "$test_dir/prowrt-status.js"
+fi
 curl -kfsS --noproxy '*' -b "$test_dir/http.cookies"     "$luci_http/cgi-bin/luci/admin/services/technitium" -o "$test_dir/technitium-luci.html"
 grep -Eq 'technitium[./]status' "$test_dir/technitium-luci.html"
 [[ $(dig @192.168.1.1 openwrt.lan A +short +tcp +time=2 +tries=1) = 192.168.1.1 ]]
