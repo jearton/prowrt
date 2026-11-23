@@ -1,4 +1,4 @@
-name: Publish firmware to GHCR
+name: Publish ProWrt firmware to GHCR
 
 on:
   release:
@@ -59,7 +59,7 @@ jobs:
               --annotation "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
               --annotation "org.opencontainers.image.version=$RELEASE_TAG" \
               --annotation "org.opencontainers.image.revision=$revision" \
-              --annotation "org.opencontainers.image.description=OpenWrt x86/64 squashfs UEFI firmware and APK manifest" \
+              --annotation "org.opencontainers.image.description=ProWrt x86/64 squashfs UEFI firmware and APK manifest" \
               "$FIRMWARE_IMAGE:application/gzip" \
               "$PACKAGE_MANIFEST:text/plain" \
               "SHA256SUMS:text/plain"

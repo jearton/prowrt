@@ -1,6 +1,6 @@
 # 2026-11-20 虚拟机扩展验收
 
-对象为 [v25.12.6-20261120](https://github.com/jearton/openwrt-pro/releases/tag/v25.12.6-20261120)，EFI 压缩镜像 SHA256：`842079ee87cd5ad0dbdff84d1edf22c09715441adf2177f31ad17fa301520023`。本轮在该镜像验收盘的冷复制工作副本中配置功能，没有修改发布附件，不能将实验配置当作固件已经具备的默认行为。
+对象为 [v25.12.6-20261120](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261120)，EFI 压缩镜像 SHA256：`842079ee87cd5ad0dbdff84d1edf22c09715441adf2177f31ad17fa301520023`。本轮在该镜像验收盘的冷复制工作副本中配置功能，没有修改发布附件，不能将实验配置当作固件已经具备的默认行为。
 
 **结论：多项网络功能通过隔离实测，但不能宣布全部验收通过。默认 AliDNS DoH 配合 Technitium 本地 DNSSEC 校验，存在部分公网域名 SERVFAIL 的未通过项。** 原有记录仅验证 `example.com`，不足以覆盖该问题。
 
