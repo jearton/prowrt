@@ -1,10 +1,12 @@
-# OpenWrt x86 定制固件
+# ProWrt
 
-基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制方案。使用 APK，内置 LuCI、实时监控和原生 Technitium DNS。默认禁用 IPv6，镜像验收使用独立实验 LAN。AdGuard Home 随镜像提供，默认停用。
+ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 APK，内置 LuCI、实时监控和原生 Technitium DNS。默认禁用 IPv6，镜像验收使用独立实验 LAN。AdGuard Home 随镜像提供，默认停用。
 
-最新发布：[v25.12.6-20261120.2](https://github.com/jearton/openwrt-pro/releases/tag/v25.12.6-20261120.2)。新增 Netdata 2.13.0 原生 System Overview、全部网络接口实时表格和逐接口 RX/TX 曲线，预置布局可离线、无云账号、跨浏览器自动初始化；[本轮镜像验收](docs/netdata-overview-acceptance-20261120.md)。含 `kmod-bonding`，Netdata、ttyd 默认自启；终端每次要求系统登录并填满窗口剩余高度。查看[登录与终端基线验收](docs/acceptance-20261120.md)及[补丁清单](patches/README.md)。
+最新发布：[v25.12.6-20261120.2](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261120.2)。新增 Netdata 2.13.0 原生 System Overview、全部网络接口实时表格和逐接口 RX/TX 曲线，预置布局可离线、无云账号、跨浏览器自动初始化；[本轮镜像验收](docs/netdata-overview-acceptance-20261120.md)。含 `kmod-bonding`，Netdata、ttyd 默认自启；终端每次要求系统登录并填满窗口剩余高度。查看[登录与终端基线验收](docs/acceptance-20261120.md)及[补丁清单](patches/README.md)。
 
 已知问题：扩展验收发现默认 AliDNS DoH 配合 Technitium DNSSEC 校验时，部分公网域名返回 SERVFAIL，尚未修复。不能将本版本标为全部功能验收通过；通过项目、实验配置和未验证范围见[VM 扩展验收](docs/vm-extended-validation-20261120.md)。
+
+项目仓库已由 `jearton/openwrt-pro` 更名为 [`jearton/prowrt`](https://github.com/jearton/prowrt)。历史 Release、版本标签和固件附件保留；新 GHCR 发布使用 `ghcr.io/jearton/prowrt/firmware`。通用插件 [`luci-app-technitium`](https://github.com/jearton/luci-app-technitium) 保持独立。迁移范围与校验见[改名记录](docs/prowrt-rename-20261123.md)。
 
 ## 功能清单
 

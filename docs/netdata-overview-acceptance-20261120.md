@@ -1,6 +1,6 @@
 # Netdata 原生概览与逐接口流量验收
 
-[v25.12.6-20261120.2](https://github.com/jearton/openwrt-pro/releases/tag/v25.12.6-20261120.2) 保留 **Netdata 2.13.0 原生 Dashboard、图表渲染器和编辑器**，通过随固件打包的模板初始化每个新浏览器。LuCI「系统 → 实时监控」默认显示 System Overview、六仪表、CPU、内存、磁盘、网络和传感器分组。
+[v25.12.6-20261120.2](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261120.2) 保留 **Netdata 2.13.0 原生 Dashboard、图表渲染器和编辑器**，通过随固件打包的模板初始化每个新浏览器。LuCI「系统 → 实时监控」默认显示 System Overview、六仪表、CPU、内存、磁盘、网络和传感器分组。
 
 此前[原生能力验证](netdata-native-dashboard-validation-20261120.md)中“换浏览器自动读取布局”未通过；本轮补齐初始化后通过。未恢复已归档的旧版前端。先前 r4 的草稿制品没有发布，本次最终制品为 r5，包含逐接口增强。
 
@@ -62,7 +62,7 @@
 
 [首次浏览器结果](evidence/netdata-overview-20261120/browser.json)、[LuCI](evidence/netdata-overview-20261120/luci.json)、[Safari](evidence/netdata-overview-20261120/safari.json)、[重启服务](evidence/netdata-overview-20261120/reboot.json)、[重启后原浏览器](evidence/netdata-overview-20261120/reboot-browser.json)、[重启后全新浏览器](evidence/netdata-overview-20261120/reboot-browser-fresh.json)。
 
-代码提交 bf72ec0 的[原生浏览器 CI](https://github.com/jearton/openwrt-pro/actions/runs/44679379571)和[仓库 CI](https://github.com/jearton/openwrt-pro/actions/runs/44679379448)通过。浏览器 CI 使用独立 Linux Agent；189 的镜像构建、PVE 全新安装与 GitHub 完整源码构建是独立证据，不混称。此前[完整源码 CI 基线](https://github.com/jearton/openwrt-pro/actions/runs/44575439007)通过，不能将其称为本次 r5 的完整源码构建结果。
+代码提交 bf72ec0 的[原生浏览器 CI](https://github.com/jearton/prowrt/actions/runs/44679379571)和[仓库 CI](https://github.com/jearton/prowrt/actions/runs/44679379448)通过。浏览器 CI 使用独立 Linux Agent；189 的镜像构建、PVE 全新安装与 GitHub 完整源码构建是独立证据，不混称。此前[完整源码 CI 基线](https://github.com/jearton/prowrt/actions/runs/44575439007)通过，不能将其称为本次 r5 的完整源码构建结果。
 
 ![LuCI 默认 System Overview](images/netdata-overview-20261120/luci-overview.png)
 
@@ -82,4 +82,4 @@
 
 验收后恢复实验 WAN 链路，9001 仍关闭；13 台非目标 VM 配置摘要、宿主路由和 9001 运行配置未变。9001 的说明文字回读从注释形式变成 description 字段，运行配置比较排除该显示格式差异，没有向该 VM 执行配置写入。[隔离回读](evidence/netdata-overview-20261120/isolation.json)、[清理结果](evidence/netdata-overview-20261120/cleanup.json)。
 
-发布交付已通过[GHCR 工作流](https://github.com/jearton/openwrt-pro/actions/runs/44681488699)的完整附件下载、推送、按摘要拉回及 SHA256 核验；匿名发布摘要检查见[证据](evidence/netdata-overview-20261120/publication.json)。最终文档提交 8ad6dd0 的[浏览器 CI](https://github.com/jearton/openwrt-pro/actions/runs/44680887485)与[仓库 CI](https://github.com/jearton/openwrt-pro/actions/runs/44680887735)均通过。
+发布交付已通过[GHCR 工作流](https://github.com/jearton/prowrt/actions/runs/44681488699)的完整附件下载、推送、按摘要拉回及 SHA256 核验；匿名发布摘要检查见[证据](evidence/netdata-overview-20261120/publication.json)。最终文档提交 8ad6dd0 的[浏览器 CI](https://github.com/jearton/prowrt/actions/runs/44680887485)与[仓库 CI](https://github.com/jearton/prowrt/actions/runs/44680887735)均通过。

@@ -42,7 +42,7 @@
 
 原来的 CI 使用 QEMU user-mode 网络，将宿主机 127.0.0.1:10553 转发到 guest 的 53 端口。检查表现为 UDP 查询超时。
 
-[带抓包的回归任务](https://github.com/jearton/openwrt-pro/actions/runs/44542892904)证明：
+[带抓包的回归任务](https://github.com/jearton/prowrt/actions/runs/44542892904)证明：
 
 - 初始化脚本成功退出，并生成完成标记。
 - Technitium 监听 IPv4 TCP/UDP 53，私网递归限制仍有效。
@@ -50,7 +50,7 @@
 - 抓包显示外部查询到达 guest，guest 立即返回正确的 UDP A 应答，但宿主机转发端口没有交付回复。
 - 同一路径的 TCP 查询成功。
 
-修复是让 CI 测试客户端通过独立 namespace 中的 TAP 直接访问 LAN，移除这条验收路径对 QEMU UDP 端口转发的依赖。[首次 TAP 回归](https://github.com/jearton/openwrt-pro/actions/runs/44544187698)已通过 UDP/TCP A 与 PTR 检查，随后暴露了下述独立的 HTTPS 问题。没有通过放宽固件 DNS ACL 或防火墙消除误报。
+修复是让 CI 测试客户端通过独立 namespace 中的 TAP 直接访问 LAN，移除这条验收路径对 QEMU UDP 端口转发的依赖。[首次 TAP 回归](https://github.com/jearton/prowrt/actions/runs/44544187698)已通过 UDP/TCP A 与 PTR 检查，随后暴露了下述独立的 HTTPS 问题。没有通过放宽固件 DNS ACL 或防火墙消除误报。
 
 ## 2026-11-19：HTTPS 缺少证书生成依赖
 
@@ -60,7 +60,7 @@
 
 ## 2026-11-19：ttyd 不能读取 uHTTPd 的 DER 证书
 
-[加入证书生成工具后的回归](https://github.com/jearton/openwrt-pro/actions/runs/44545464681)中，uHTTPd 已监听 443，ttyd 日志报 PEM routines::no start line，终端端口未监听。uHTTPd 默认生成 DER 编码的证书，ttyd 的 libwebsockets/OpenSSL 后端要求 PEM。
+[加入证书生成工具后的回归](https://github.com/jearton/prowrt/actions/runs/44545464681)中，uHTTPd 已监听 443，ttyd 日志报 PEM routines::no start line，终端端口未监听。uHTTPd 默认生成 DER 编码的证书，ttyd 的 libwebsockets/OpenSSL 后端要求 PEM。
 
 ttyd 补丁 r4 通过官方 openssl-util 将配置中的 DER 或 PEM 证书和私钥规范化为运行时 PEM：
 
@@ -69,7 +69,7 @@ ttyd 补丁 r4 通过官方 openssl-util 将配置中的 DER 或 PEM 证书和�
 - 输入错误时停止启动，不降低 LuCI 会话和 WebSocket 权限要求。
 - EC/RSA、DER/PEM 四种组合及错误输入均由实际 OpenSSL 转换验证。
 
-修复后的[隔离回归任务](https://github.com/jearton/openwrt-pro/actions/runs/44547973505)于 2026-11-19 通过：LuCI HTTP/HTTPS 登录、Technitium 控制台、Netdata 图表 API、LAN 的 UDP/TCP A 和 PTR、终端页面及实际 shell 命令全部通过；未登录、伪造会话和错误 Origin 的 WebSocket 被拒绝，HTTPS 会话经 HTTP 访问终端也被拒绝。guest 的 IPv6 内核禁用参数和无 IPv6 地址均已检查。这是初始化回归结果，完整新镜像仍由独立构建任务另行验收。
+修复后的[隔离回归任务](https://github.com/jearton/prowrt/actions/runs/44547973505)于 2026-11-19 通过：LuCI HTTP/HTTPS 登录、Technitium 控制台、Netdata 图表 API、LAN 的 UDP/TCP A 和 PTR、终端页面及实际 shell 命令全部通过；未登录、伪造会话和错误 Origin 的 WebSocket 被拒绝，HTTPS 会话经 HTTP 访问终端也被拒绝。guest 的 IPv6 内核禁用参数和无 IPv6 地址均已检查。这是初始化回归结果，完整新镜像仍由独立构建任务另行验收。
 
 ## 2026-11-20：原生构建归档带入私有目录权限
 
@@ -87,7 +87,7 @@ scripts/check-rootfs-permissions.py 在打包后直接检查 squashfs 元数据�
 
 隔离测试先用空密码的全新磁盘验证拒绝进入，再仅在临时测试磁盘设置随机系统密码。LuCI 登录后，终端必须先出现 login 和 Password 提示，认证后才可执行 root 命令；新建连接须重新登录。测试密码不写入发布镜像、源码或日志。
 
-[r5 隔离回归](https://github.com/jearton/openwrt-pro/actions/runs/44570476983)于 2026-11-20 通过上述全部检查，同时通过 LAN 的 UDP/TCP DNS、强制重定向计数、客户端源 IP 保留、关闭及重新启用规则、升级时保留规则关闭状态等检查。空密码提示会等待用户按 Enter 后退出，避免进程立即结束而导致终端来不及呈现说明。这仍是基于固定历史镜像的初始化回归，不替代新发布镜像的完整启动与浏览器验收。
+[r5 隔离回归](https://github.com/jearton/prowrt/actions/runs/44570476983)于 2026-11-20 通过上述全部检查，同时通过 LAN 的 UDP/TCP DNS、强制重定向计数、客户端源 IP 保留、关闭及重新启用规则、升级时保留规则关闭状态等检查。空密码提示会等待用户按 Enter 后退出，避免进程立即结束而导致终端来不及呈现说明。这仍是基于固定历史镜像的初始化回归，不替代新发布镜像的完整启动与浏览器验收。
 
 ## 回滚
 
@@ -105,7 +105,7 @@ r6 只在 LuCI 授权的 TLS 监听设置 ALPN 为 http/1.1，保留来源、LuC
 
 ## CI 旧镜像 fixture 的 SSH 启动等待
 
-2026-11-20 的 [44575439069](https://github.com/jearton/openwrt-pro/actions/runs/44575439069) 在旧镜像 bootstrap 等待 SSH 时超时，尚未进入新包安装和断言阶段；不能将该结果标记为新固件功能验收失败或成功。排障输出随后能取得 DNS 答案和 Netdata/Console HTTP 响应。bootstrap 原先持有串口 socket 却停止读取，再等待 SSH 150 秒。等待器改为持续排空串口，并给无硬件加速的冷启动 300 秒上限。新镜像的 Mac/PVE/9001 验收结果独立记录，不用 fixture 结果替代。
+2026-11-20 的 [44575439069](https://github.com/jearton/prowrt/actions/runs/44575439069) 在旧镜像 bootstrap 等待 SSH 时超时，尚未进入新包安装和断言阶段；不能将该结果标记为新固件功能验收失败或成功。排障输出随后能取得 DNS 答案和 Netdata/Console HTTP 响应。bootstrap 原先持有串口 socket 却停止读取，再等待 SSH 150 秒。等待器改为持续排空串口，并给无硬件加速的冷启动 300 秒上限。新镜像的 Mac/PVE/9001 验收结果独立记录，不用 fixture 结果替代。
 
 
-修复后的[旧镜像初始化回归 44577868930](https://github.com/jearton/openwrt-pro/actions/runs/44577868930)已通过，耗时 3 分 57 秒，完成每次终端登录、空密码拒绝、DNS 接管、源 IP 保留和规则关闭/恢复检查。该回归仍不替代正式镜像的 Mac 验收。正式镜像的[GHCR 发布与摘要回拉校验](https://github.com/jearton/openwrt-pro/actions/runs/44578122539)也已通过，公开不可变引用见[发布文档](releases.md)。
+修复后的[旧镜像初始化回归 44577868930](https://github.com/jearton/prowrt/actions/runs/44577868930)已通过，耗时 3 分 57 秒，完成每次终端登录、空密码拒绝、DNS 接管、源 IP 保留和规则关闭/恢复检查。该回归仍不替代正式镜像的 Mac 验收。正式镜像的[GHCR 发布与摘要回拉校验](https://github.com/jearton/prowrt/actions/runs/44578122539)也已通过，公开不可变引用见[发布文档](releases.md)。

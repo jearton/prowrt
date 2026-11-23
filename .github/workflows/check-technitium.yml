@@ -37,7 +37,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p "$RUNNER_TEMP/technitium-apks"
-          gh release download v25.12.6-20261118 --repo jearton/openwrt-pro \
+          gh release download v25.12.6-20261118 --repo "$GITHUB_REPOSITORY" \
             --pattern openwrt-x86-64-generic-squashfs-combined-efi.img.gz --dir "$RUNNER_TEMP"
           printf '%s  %s\n' 676599499413774b57b0f728a16d00a2929e2234ac6be9693705b083471638cf \
             "$RUNNER_TEMP/openwrt-x86-64-generic-squashfs-combined-efi.img.gz" | sha256sum --strict -c -
