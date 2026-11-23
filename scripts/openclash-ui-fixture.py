@@ -59,6 +59,13 @@ rules:
         try:
             request = await asyncio.wait_for(reader.readuntil(b'\r\n\r\n'), 5)
             if request.startswith(b'POST /upgrade HTTP/'):
+                # A real package install writes new files after the old install.
+                # The fixture extracts both bundles in advance; refresh mtimes
+                # so conditional SW requests do not get a false 304 from a
+                # newer timestamp on the archived legacy bundle.
+                for asset in (ui / 'zashboard').rglob('*'):
+                    if asset.is_file():
+                        os.utime(asset, None)
                 alias.unlink()
                 alias.symlink_to('zashboard', target_is_directory=True)
                 response = b'{"upgraded":true}'
