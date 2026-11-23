@@ -1,5 +1,7 @@
 # ProWrt 项目改名
 
+本文记录改名当时的 `/firmware` 发布路径；当前统一使用 `ghcr.io/jearton/prowrt`，旧路径保留。见[后续路径调整](ghcr-root-20261123.md)。
+
 2026-11-23 将项目名称统一为 **ProWrt**，GitHub 仓库由 `jearton/openwrt-pro` 更名为 [`jearton/prowrt`](https://github.com/jearton/prowrt)。这是仓库和交付命名调整，已发布固件的 OpenWrt 底座、软件包与运行配置不因改名而改变。
 
 ## 调整范围

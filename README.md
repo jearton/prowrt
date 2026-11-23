@@ -6,7 +6,7 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 
 已知问题：扩展验收发现默认 AliDNS DoH 配合 Technitium DNSSEC 校验时，部分公网域名返回 SERVFAIL，尚未修复。不能将本版本标为全部功能验收通过；通过项目、实验配置和未验证范围见[VM 扩展验收](docs/vm-extended-validation-20261120.md)。
 
-项目仓库已由 `jearton/openwrt-pro` 更名为 [`jearton/prowrt`](https://github.com/jearton/prowrt)。历史 Release、版本标签和固件附件保留；新 GHCR 发布使用 `ghcr.io/jearton/prowrt/firmware`。通用插件 [`luci-app-technitium`](https://github.com/jearton/luci-app-technitium) 保持独立。迁移范围与校验见[改名记录](docs/prowrt-rename-20261123.md)。
+项目仓库已由 `jearton/openwrt-pro` 更名为 [`jearton/prowrt`](https://github.com/jearton/prowrt)。历史 Release、版本标签和固件附件保留；GHCR 统一使用 `ghcr.io/jearton/prowrt`，仅发布定制固件，正式版与 CI 候选通过版本 tag 区分。通用插件 [`luci-app-technitium`](https://github.com/jearton/luci-app-technitium) 保持独立。迁移范围与校验见[改名记录](docs/prowrt-rename-20261123.md)和 [GHCR 路径调整](docs/ghcr-root-20261123.md)。
 
 ## 功能清单
 

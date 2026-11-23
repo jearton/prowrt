@@ -4,7 +4,7 @@
 
 ## 在 Mac 制作启动 U 盘
 
-下载 [Release](https://github.com/jearton/prowrt/releases) 或 [GitHub Packages](https://github.com/jearton/prowrt/pkgs/container/prowrt%2Ffirmware) 中同一版本的 EFI 镜像、APK 清单和 SHA256SUMS。在下载目录执行：
+下载 [Release](https://github.com/jearton/prowrt/releases) 或 [GitHub Packages](https://github.com/jearton/prowrt/pkgs/container/prowrt) 中同一版本的 EFI 镜像、APK 清单和 SHA256SUMS。在下载目录执行：
 
 ```sh
 shasum -a 256 -c SHA256SUMS
