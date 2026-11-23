@@ -151,8 +151,8 @@ curl -fsS --max-time 5 -H "Authorization: Bearer $token" http://127.0.0.1:5380/a
     -e '@.response.forwarders[*]'
 """)
     assert output.splitlines() == ["false", "Tls", "true", "2",
-                                   "dns.alidns.com (223.5.5.5)",
-                                   "dot.360.cn (101.226.4.6)"], output
+                                   "dns.alidns.com:853 (223.5.5.5)",
+                                   "dot.360.cn:853 (101.226.4.6)"], output
     print("Fresh native API defaults: DNSSEC off, two parallel certificate-verified DoT upstreams.", flush=True)
 
 
