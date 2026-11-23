@@ -69,6 +69,9 @@ if [[ -n ${FRESH_LAN_FIXTURE_APKS:-} ]]; then
     python3 "$repo/scripts/lan-vm.py" fixture "$test_dir" "$FRESH_LAN_FIXTURE_APKS" "$FRESH_LAN_FIXTURE_TTYD_INIT"
 fi
 python3 "$repo/scripts/lan-vm.py" check-ipv4 "$test_dir"
+if [[ -f $repo/VERSION && -z ${FRESH_LAN_FIXTURE_APKS:-} ]]; then
+    python3 "$repo/scripts/lan-vm.py" build-identity "$test_dir"
+fi
 
 fetch() {
     curl -fsSL --noproxy '*' --connect-timeout 2 --max-time 5 \

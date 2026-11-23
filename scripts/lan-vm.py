@@ -4,6 +4,8 @@
 
 from pathlib import Path
 import re
+import json
+import importlib.util
 import secrets
 import select
 import socket
@@ -255,6 +257,17 @@ if __name__ == "__main__":
     elif action == "check-ipv4":
         guest.run("grep -Eq '(^| )ipv6.disable=1( |$)' /proc/cmdline\ntest ! -s /proc/net/if_inet6")
         print("The guest kernel has IPv6 disabled and no IPv6 interface addresses.", flush=True)
+    elif action == "build-identity":
+        spec = importlib.util.spec_from_file_location("metadata", Path(__file__).with_name("build-metadata.py"))
+        metadata = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(metadata)
+        actual = json.loads(guest.run("prowrt-version --json"))
+        metadata.verify(Path(__file__).resolve().parent.parent, actual)
+        assert guest.run("prowrt-version --short").strip() == actual["version"]
+        guest.run("test -r /rom/usr/share/prowrt/build.json\n"
+                  "test -r /www/luci-static/resources/view/status/include/05_prowrt.js\n"
+                  "test -r /usr/share/rpcd/acl.d/prowrt-version.json")
+        print("Booted image reports the expected ProWrt version and source commit", flush=True)
     elif action == "forced-dns":
         forced_dns(guest)
     elif action == "dns-defaults":

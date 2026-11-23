@@ -146,6 +146,11 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 - **根文件系统权限检查**：检查 squashfs 目录能被非 root 服务遍历，同时保留私有文件权限。
 - **软件包清单检查**：逐项核对包名、版本和允许的版本差异。
 - **内核 ABI 检查**：逐项核对内核模块与镜像内核的 ABI。
+- **ProWrt 版本**：由 `VERSION` 生成固件身份；LuCI「状态 → 概览」与 `prowrt-version` 读取同一记录，优先使用只读固件中的版本。
+- **下载缓存**：CI 跨次复用公开下载资源，命中后继续执行原始摘要校验。
+- **编译缓存**：CI 跨次复用 ccache，按工具链和输入分区，不缓存旧根文件系统或完整构建树。
+- **构建耗时**：输出各阶段耗时、主机资源和本轮 ccache 统计；完整构建与全新启动检查继续执行。
+- **发布身份检查**：校验 Git tag、`VERSION`、源码提交、外部 `build.json` 和镜像内部记录一致。
 
 对应文件和应用位置见 [定制补丁索引](patches/README.md)。
 
@@ -156,6 +161,7 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 - [日常使用和验收](docs/usage.md) · [从 U 盘启动或安装到内置 SSD](docs/physical-install.md)
 - [Technitium、DNS 分流和升级](docs/technitium.md)
 - [CI、GitHub Packages 与固件下载](docs/releases.md) · [构建产物摘要与 APK 清单](manifests/README.md)
+- [固件版本查询、构建缓存和耗时验证](docs/build-cache-and-version.md)
 - [隔离启动验收与 CI 故障记录](docs/ci-acceptance.md)
 - [Netdata 界面与第三方插件对照](docs/netdata-ui-comparison.md)
 - [底座和 feeds 锁定版本](sources.lock.json) · [第三方来源](custom-sources.lock.json)

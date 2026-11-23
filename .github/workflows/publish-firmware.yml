@@ -43,8 +43,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          metadata_args=()
+          if test -f VERSION; then
+            sudo apt-get update -q
+            sudo apt-get install -qy --no-install-recommends squashfs-tools
+            metadata_args=(--pattern build.json)
+          fi
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir firmware \
-            --pattern "$FIRMWARE_IMAGE" --pattern "$PACKAGE_MANIFEST" --pattern SHA256SUMS
+            --pattern "$FIRMWARE_IMAGE" --pattern "$PACKAGE_MANIFEST" --pattern SHA256SUMS "${metadata_args[@]}"
           ./scripts/verify-firmware.sh firmware
       - uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1
         with:
@@ -59,6 +65,8 @@ jobs:
           printf '%s' "$GH_TOKEN" | oras login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
           (
             cd firmware
+            metadata_files=()
+            if test -f build.json; then metadata_files=(build.json:application/json); fi
             oras push "$ref" \
               --artifact-type application/vnd.openwrt.firmware.v1 \
               --annotation "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
@@ -67,6 +75,7 @@ jobs:
               --annotation "org.opencontainers.image.description=ProWrt x86/64 squashfs UEFI firmware and APK manifest" \
               "$FIRMWARE_IMAGE:application/gzip" \
               "$PACKAGE_MANIFEST:text/plain" \
+              "${metadata_files[@]}" \
               "SHA256SUMS:text/plain"
           )
           digest=$(oras manifest fetch --descriptor "$ref" | jq -er .digest)

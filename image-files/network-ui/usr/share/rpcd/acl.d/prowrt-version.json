@@ -1,0 +1,11 @@
+{
+  "prowrt-version": {
+    "description": "Read public ProWrt firmware build identity",
+    "read": {
+      "file": {
+        "/rom/usr/share/prowrt/build.json": ["read"],
+        "/usr/share/prowrt/build.json": ["read"]
+      }
+    }
+  }
+}
