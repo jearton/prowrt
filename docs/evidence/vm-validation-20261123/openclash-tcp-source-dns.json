@@ -25,9 +25,11 @@
   "different_proxy_exit": true,
   "nonwhite_real_answers": [
     "104.26.13.205",
-    "104.26.12.205",
-    "172.67.74.152"
+    "172.67.74.152",
+    "104.26.12.205"
   ],
   "nonwhite_direct_exit": true,
-  "forced_dns_keeps_source_policy": true
+  "forced_dns_keeps_source_policy": true,
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
 }

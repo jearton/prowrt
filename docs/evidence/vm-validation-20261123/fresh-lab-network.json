@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "initial_defaults_checked_first": true,
+  "lab_lan": "192.168.77.1",
+  "dhcp_client": "192.168.77.223",
+  "lease_dns_name": true,
+  "ipv6_kept_disabled": true
+}

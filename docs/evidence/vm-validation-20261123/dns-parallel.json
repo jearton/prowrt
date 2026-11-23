@@ -4,14 +4,16 @@
   "faster_upstream_reversed": true,
   "cases": [
     {
-      "query": "first1795432741162432448.example.com",
-      "arrival_difference_ms": 0.043,
+      "query": "first1795435587146339192.example.com",
+      "arrival_difference_ms": 0.079,
       "both_received_before_first_answer": true
     },
     {
-      "query": "second1795432741413758028.example.com",
-      "arrival_difference_ms": 0.121,
+      "query": "second1795435587397337835.example.com",
+      "arrival_difference_ms": 0.034,
       "both_received_before_first_answer": true
     }
-  ]
+  ],
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
 }

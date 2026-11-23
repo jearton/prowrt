@@ -7,5 +7,7 @@
   "whitelist_before_fake_ip_tproxy": true,
   "core_logged_white_not_nonwhite": true,
   "no_listener_errors": true,
-  "fail_closed_egress_guard": true
+  "fail_closed_egress_guard": true,
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
 }

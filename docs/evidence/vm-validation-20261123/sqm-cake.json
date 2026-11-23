@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "config_kbit": {
+    "upload": 5000,
+    "download": 8000
+  },
+  "baseline_bps": 18855943671.906338,
+  "shaped_upload_bps": 4611311.616876492,
+  "shaped_download_bps": 7548168.12322862,
+  "after_stop_bps": 17398267332.062332,
+  "qdisc_counters": "qdisc cake 8005: root refcnt 5 bandwidth 5Mbit besteffort triple-isolate nat nowash no-ack-filter split-gso rtt 100ms raw overhead 0 \n Sent 3271195 bytes 4089 pkt (dropped 57, overlimits 5528 requeues 0) \n backlog 0b 0p requeues 0\n memory used: 44800b of 4Mb\n capacity estimate: 5Mbit\n min/max network layer size:           54 /    1514\n min/max overhead-adjusted size:       54 /    1514\n active queues:                         0\n average network hdr offset:           14\n\n                  Tin 0\n  thresh          5Mbit\n  target            5ms\n  interval        100ms\n  pk_delay        121us\n  av_delay          7us\n  sp_delay          1us\n  backlog            0b\n  pkts             4146\n  bytes         3357493\n  way_inds            0\n  way_miss            4\n  way_cols            0\n  drops              57\n  marks               0\n  ack_drop            0\n  sp_flows            1\n  bk_flows            1\n  un_flows            0\n  max_len          7570\n  quantum           300\n\nqdisc ingress ffff: parent ffff:fff1 ---------------- \n Sent 4969562 bytes 4700 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nqdisc cake 8006: root refcnt 2 bandwidth 8Mbit besteffort triple-isolate nat wash no-ack-filter split-gso rtt 100ms raw overhead 0 \n Sent 5107154 bytes 4688 pkt (dropped 12, overlimits 4938 requeues 0) \n backlog 0b 0p requeues 0\n memory used: 32816b of 4Mb\n capacity estimate: 8Mbit\n min/max network layer size:           54 /    1514\n min/max overhead-adjusted size:       54 /    1514\n active queues:                         0\n average network hdr offset:           14\n\n                  Tin 0\n  thresh          8Mbit\n  target            5ms\n  interval        100ms\n  pk_delay        6.5ms\n  av_delay       5.13ms\n  sp_delay       1.68ms\n  backlog            0b\n  pkts             4700\n  bytes         5125322\n  way_inds            0\n  way_miss            4\n  way_cols            0\n  drops              12\n  marks               0\n  ack_drop            0\n  sp_flows            1\n  bk_flows            1\n  un_flows            0\n  max_len          7570\n  quantum           300\n\n",
+  "scope": "9001 forwarded through router and simulated WAN; not physical capacity or real ISP bufferbloat",
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}

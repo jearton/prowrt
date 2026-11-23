@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "fresh_system_disk": true,
+  "default_lan": "192.168.1.1",
+  "dnssec_validation": false,
+  "forwarder_protocol": "Tls",
+  "upstreams": [
+    "dns.alidns.com:853 (223.5.5.5)",
+    "dot.360.cn:853 (101.226.4.6)"
+  ],
+  "parallel": true,
+  "concurrency": 2,
+  "netdata_ttyd_technitium_enabled_and_running": true,
+  "optional_services_disabled": true,
+  "ipv6_disabled": true
+}

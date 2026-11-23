@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "actual_ingress_device_in_stock_WAN_zone": true,
+  "DNS_UDP_53_denied": true,
+  "TCP_ports_denied": [
+    53,
+    80,
+    443,
+    5380,
+    7681,
+    19999
+  ],
+  "local_services_positive_control": true,
+  "isolated_virtual_peer_only": true,
+  "image_sha256": "7402d682ee256bab2974df8f8793bc208b42cebec5c378df4b39968f911ed4f3",
+  "system_volume": "truenas-virt-nfs:9000/vm-9000-disk-23.raw"
+}
