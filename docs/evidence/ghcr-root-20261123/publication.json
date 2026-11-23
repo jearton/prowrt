@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "canonical_repository": "ghcr.io/jearton/prowrt",
+  "artifact_kind": "custom firmware bundle only",
+  "release_tag": "v25.12.6-20261120.2",
+  "immutable_reference": "ghcr.io/jearton/prowrt@sha256:225bfe83d665046f748fc822b323f68493b15f20036b535bfb575b04950ed31a",
+  "preserved_references": [
+    "ghcr.io/jearton/prowrt/firmware@sha256:6da4b4c51cd088e2afb5e2aafdd551b24f25881abd2058f69499a529c9822c9a",
+    "ghcr.io/jearton/openwrt-pro/firmware@sha256:18298a9616ea62f169e96cdfe7b7e475e988bc11e7e69f23d231d1edc65b2308"
+  ],
+  "old_manifest_digests_unchanged": true,
+  "all_payload_layers_identical": true,
+  "anonymous_full_pull_and_checksum_ci": "https://github.com/jearton/prowrt/actions/runs/45124061421",
+  "files": [
+    {
+      "name": "openwrt-x86-64-generic-squashfs-combined-efi.img.gz",
+      "bytes": 173922628,
+      "digest": "sha256:c0f28710b3f6430699772bf9b8d4f9cd888e88aafd7e4d71e4f681f0982dff11"
+    },
+    {
+      "name": "openwrt-x86-64-generic.manifest",
+      "bytes": 13357,
+      "digest": "sha256:b4890cfd9ca182b4d300861842c1733208afb33845b5d512fb2e427bc2b4152e"
+    },
+    {
+      "name": "SHA256SUMS",
+      "bytes": 216,
+      "digest": "sha256:7661acb8463ec5678c253dfcb2855dad1fd36ca01b9e9b8ee56c92d8bfcc0142"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "status": "passed",
+  "run": "https://github.com/jearton/prowrt/actions/runs/45124061421",
+  "steps": [
+    {
+      "name": "Set up job",
+      "conclusion": "success"
+    },
+    {
+      "name": "Validate release tag",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+      "conclusion": "success"
+    },
+    {
+      "name": "Download and verify the release bundle",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6",
+      "conclusion": "success"
+    },
+    {
+      "name": "Publish and verify the OCI artifact",
+      "conclusion": "success"
+    },
+    {
+      "name": "Verify public anonymous download",
+      "conclusion": "success"
+    },
+    {
+      "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+      "conclusion": "success"
+    },
+    {
+      "name": "Complete job",
+      "conclusion": "success"
+    }
+  ]
+}

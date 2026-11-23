@@ -7,6 +7,14 @@ oras pull ghcr.io/jearton/prowrt:v25.12.6-20261120.2
 sha256sum -c SHA256SUMS
 ```
 
+当前统一路径的不可变下载引用：
+
+```sh
+oras pull ghcr.io/jearton/prowrt@sha256:225bfe83d665046f748fc822b323f68493b15f20036b535bfb575b04950ed31a
+```
+
+2026-11-23 的[发布验收](https://github.com/jearton/prowrt/actions/runs/45124061421)已通过：使用空 registry 凭据配置匿名完整拉取，再核对 SHA-256 和 gzip 完整性。三个文件与两条旧路径的内容完全一致，详见[发布证据](evidence/ghcr-root-20261123/publication.json)。此次只调整发布路径，固件内容和版本不变。
+
 此前 `/firmware` 路径的不可变下载引用继续保留：
 
 ```sh
@@ -31,7 +39,7 @@ oras pull ghcr.io/jearton/openwrt-pro/firmware@sha256:18298a9616ea62f169e96cdfe7
 
 ## ProWrt 改名与历史发布
 
-2026-11-23 项目更名为 ProWrt，仓库为 `jearton/prowrt`。改名阶段使用 `ghcr.io/jearton/prowrt/firmware`，随后统一简化为 `ghcr.io/jearton/prowrt`；正式版与 CI 候选均发布到该单一固件制品路径。此前两条 `/firmware` 路径以及旧 `ghcr.io/jearton/openwrt-pro/firmware` 的版本和摘要保留。已有 Release、Git tag、附件名称、内容和校验和不变。新命名空间可以使用同一历史版本标签重新发布经过校验的附件；OCI 来源等元数据随仓库名变化，新 OCI manifest 摘要须单独核对，不能沿用旧摘要。已通过[新路径发布与回拉](https://github.com/jearton/prowrt/actions/runs/45121685855)、[空凭据匿名全量拉取](https://github.com/jearton/prowrt/actions/runs/45122617287)以及[改名后的首次启动回归](https://github.com/jearton/prowrt/actions/runs/45122212857)。详见[迁移与验证](prowrt-rename-20261123.md)。
+2026-11-23 项目更名为 ProWrt，仓库为 `jearton/prowrt`。改名阶段使用 `ghcr.io/jearton/prowrt/firmware`，随后统一简化为 `ghcr.io/jearton/prowrt`；正式版与 CI 候选均发布到该单一固件制品路径。此前两条 `/firmware` 路径的版本和摘要保留。已有 Release、Git tag、附件名称、内容和校验和不变。新命名空间可以使用同一历史版本标签重新发布经过校验的附件；OCI 来源等元数据随仓库名变化，新 OCI manifest 摘要须单独核对，不能沿用旧摘要。改名阶段已通过[发布与回拉](https://github.com/jearton/prowrt/actions/runs/45121685855)、[空凭据匿名全量拉取](https://github.com/jearton/prowrt/actions/runs/45122617287)以及[首次启动回归](https://github.com/jearton/prowrt/actions/runs/45122212857)。详见[迁移与验证](prowrt-rename-20261123.md)。
 
 当前路径调整、历史保留和匿名下载校验见 [GHCR 路径记录](ghcr-root-20261123.md)。
 

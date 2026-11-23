@@ -1,0 +1,8 @@
+{
+  "run_id": 45124276607,
+  "url": "https://github.com/jearton/prowrt/actions/runs/45124276607",
+  "head_sha": "52cda6d556f30789b81792cda3d4f0e92350a5da",
+  "reason": "Publication reference only; no firmware input or payload change. Existing accepted release used for actual publisher and anonymous-download verification.",
+  "status": "completed",
+  "conclusion": "cancelled"
+}
