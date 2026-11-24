@@ -89,3 +89,9 @@ oras pull ghcr.io/jearton/openwrt-pro/firmware@sha256:18298a9616ea62f169e96cdfe7
 4. 查看 **Publish ProWrt firmware to GHCR** 的 Actions 日志。重新发布已存在的 Release 可通过工作流的手动触发入口执行。新的固件内容使用新版本 tag。
 
 完整定制版的构建入口为 **Build full firmware and publish candidate**。工作流在 GitHub 托管的 Linux x86_64 runner 上编译，对照已发布的 APK 清单和构建脚本声明的差异逐项检查名称与版本，并验证所有内核模块的 ABI。通过后生成 `ci-运行编号-尝试次数` 的 GHCR 候选镜像。手动重跑从 Actions 的 workflow_dispatch 入口进入。命名 Release 的发布流程见上文。首次创建的 GitHub Package 默认私有，公开仓库的所有者可在该 Package 的设置里将它切换为 Public。[GitHub Packages 可见性说明](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility#configuring-visibility-of-packages-for-your-personal-account)
+
+## 已编译镜像的独立复验
+
+`Verify an existing full firmware image` 手动工作流只接受本仓库 main 的完整构建 run，按原始源码提交下载对应镜像并校验 SHA256、内嵌身份和源码；用当前验收程序启动同一镜像，不改固件内容。报告分别记录固件提交和验收程序提交。仅在通过后可创建未发布的 Release 草稿，正式发布仍在最终审阅后执行。
+
+2026-11-25 首次完整镜像包含 473 个匹配版本的包，清单和 ABI 校验已通过。后续验收程序使用 Python MozillaCookieJar 读取 curl 的 HttpOnly Cookie 时没有建立会话，访问 OpenClash 页面返回 403；改为通过原生 LuCI 登录取得 Cookie，不修改设备权限或跳过页面检查。此次复验保留原镜像源码身份。

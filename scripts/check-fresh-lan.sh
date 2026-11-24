@@ -10,7 +10,8 @@ if [[ -z ${OPENWRT_CI_NETNS:-} ]]; then
     trap 'sudo ip netns delete "$namespace"' EXIT
     sudo ip netns exec "$namespace" env OPENWRT_CI_NETNS="$namespace" \
         FRESH_LAN_FIXTURE_APKS="${FRESH_LAN_FIXTURE_APKS:-}" \
-        FRESH_LAN_FIXTURE_TTYD_INIT="${FRESH_LAN_FIXTURE_TTYD_INIT:-}" bash "$0" "$@"
+        FRESH_LAN_FIXTURE_TTYD_INIT="${FRESH_LAN_FIXTURE_TTYD_INIT:-}" \
+        PROWRT_FIRMWARE_SOURCE="${PROWRT_FIRMWARE_SOURCE:-}" bash "$0" "$@"
     exit 0
 fi
 [[ $(ip netns identify $$) = "$OPENWRT_CI_NETNS" ]]
@@ -127,7 +128,8 @@ if [[ -f $repo/VERSION && -z ${FRESH_LAN_FIXTURE_APKS:-} ]]; then
     curl -fsS --noproxy '*' --connect-timeout 2 --max-time 5 \
         --data-urlencode "sessionid=$session" --data-urlencode path=/rom/usr/share/prowrt/build.json \
         "$luci_http/cgi-bin/cgi-download" -o "$test_dir/luci-build.json"
-    python3 "$repo/scripts/build-metadata.py" verify "$test_dir/luci-build.json"
+    python3 "$repo/scripts/build-metadata.py" verify "$test_dir/luci-build.json" \
+        --repo "${PROWRT_FIRMWARE_SOURCE:-$repo}"
     fetch 80/luci-static/resources/view/status/include/05_prowrt.js "$test_dir/prowrt-status.js"
     grep -q '/rom/usr/share/prowrt/build.json' "$test_dir/prowrt-status.js"
 fi
