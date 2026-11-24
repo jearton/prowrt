@@ -1,0 +1,19 @@
+{
+  "empty_arp_normalized": true,
+  "native_binary_error_reproduced": true,
+  "selected_interfaces": [
+    "lan",
+    "wan"
+  ],
+  "multiple_neighbors": true,
+  "readonly_writes_denied": true,
+  "dhcp_unchanged": true,
+  "unauthenticated_denied": true,
+  "mac_chrome": {
+    "multi_interface_list": true,
+    "read_only_notice": true,
+    "real_interface_error_visible": true,
+    "primary_lan_restored": true,
+    "warning_cleared": true
+  }
+}

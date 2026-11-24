@@ -44,7 +44,7 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 | 服务 → OAF 行为管理 | 应用识别和访问控制 | [OpenAppFilter](https://github.com/destan19/OpenAppFilter) |
 | VPN、网络 → 接口 | Tailscale 管理及 WireGuard 接口支持 | [Tailscale](https://github.com/tailscale/tailscale)、[LuCI Tailscale](https://github.com/jearton/luci-app-tailscale)、[WireGuard Tools](https://git.zx2c4.com/wireguard-tools/) |
 | 网络 → 负载均衡、定时限速、SQM | 多 WAN 策略、按规则限速、队列管理 | [mwan3 nftables 版本](https://github.com/dl12345/mwan3)、[Lean LuCI](https://github.com/coolsnowwolf/luci/tree/f43c53a60f11f5d635b7127c775e9c04e2be191d)、[EQoS Plus](https://github.com/sirpdboy/luci-app-eqosplus)、[SQM](https://github.com/tohojo/sqm-scripts) |
-| 网络 → 流量统计、网速测试、IP/MAC 绑定 | 客户端和接口计量、测速、静态邻居 | [nlbwmon](https://github.com/jow-/nlbwmon)、[vnStat 配方](https://github.com/openwrt/packages/tree/093d551675b1119a06ef224d419905e8d6b2af1a/net/vnstat2)、[网速测试 LuCI](https://github.com/muink/luci-app-netspeedtest)、[iperf3](https://github.com/esnet/iperf)、[LibreSpeed](https://github.com/librespeed/speedtest-go)、[Lean LuCI](https://github.com/coolsnowwolf/luci/tree/f43c53a60f11f5d635b7127c775e9c04e2be191d) |
+| 服务 → 带宽监控；网络 → 网速测试、IP/MAC 绑定 | 客户端和接口计量、测速、静态邻居 | [nlbwmon](https://github.com/jow-/nlbwmon)、[vnStat 配方](https://github.com/openwrt/packages/tree/093d551675b1119a06ef224d419905e8d6b2af1a/net/vnstat2)、[网速测试 LuCI](https://github.com/muink/luci-app-netspeedtest)、[iperf3](https://github.com/esnet/iperf)、[LibreSpeed](https://github.com/librespeed/speedtest-go)、[Lean LuCI](https://github.com/coolsnowwolf/luci/tree/f43c53a60f11f5d635b7127c775e9c04e2be191d) |
 | 网络 → DHCP/DNS、Macvlan | 定制快捷页面，沿用 OpenWrt 原生配置接口 | [本项目菜单和页面](image-files/network-ui)、[netifd](https://git.openwrt.org/project/netifd.git) |
 | 网络 → 接口 | 完整版构建启用以太网链路聚合驱动 `kmod-bonding` | [OpenWrt bonding 配方](https://github.com/openwrt/openwrt/blob/v25.12.6/package/kernel/linux/modules/netsupport.mk) |
 
@@ -53,6 +53,14 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 ### 本项目的补丁和调整
 
 以下分别列出源码补丁、随包页面和固件默认配置；不是每项都通过 `.patch` 文件实现。
+
+#### 三层统计与设备列表（未发布候选）
+
+- **nlbwmon 后台**：查不到终端 MAC 时立即按 IP 记账，使用固定容量的短期失败缓存，避免逐连接等待造成队列溢出；保留实际观测增量和原数据库格式。
+- **流量统计界面**：未知 MAC 按 IP 分开显示，已知设备仍按真实 MAC 汇总；详见[验证与回滚](docs/nlbwmon-routed-hosts-20261124.md)。
+- **QuickStart 空列表**：兼容已验证的空 ARP 返回错误，真实接口／服务错误明确显示。
+- **QuickStart 多接口**：可通过 UCI 选择发现接口；多接口列表只读，不扫描、不伪造跨三层 MAC；详见[使用说明](docs/quickstart-devices-20261124.md)。
+- **交付状态**：包在克隆 VM 和 Mac Chrome 中验收；新固件 `25.12.6-20261124.3` 进入源码检查和完整构建阶段，尚未发布；包验收不代替最终镜像验收。
 
 #### Netdata 实时监控
 

@@ -1,0 +1,47 @@
+{
+  "status": "passed",
+  "backend_version": "2025.06.02~29236be6-r3",
+  "luci_version": "26.288.56989~75a306d-r3",
+  "fixture": "cloned isolated VM, package-only update",
+  "original_queue_overflow_reproduced": true,
+  "database_limit_unchanged": 32,
+  "offline_upgrade_retained_config_and_prior_counters": true,
+  "exact_udp_payload_and_counters": true,
+  "no_new_queue_overflow": true,
+  "idle_refresh_does_not_duplicate": true,
+  "routed_ips_without_mac_separate": true,
+  "direct_neighbor_real_mac": true,
+  "totals": {
+    "192.168.88.10": {
+      "family": 4,
+      "mac": "00:00:00:00:00:00",
+      "ip": "192.168.88.10",
+      "conns": 200,
+      "rx_bytes": 210400,
+      "rx_pkts": 200,
+      "tx_bytes": 210400,
+      "tx_pkts": 200
+    },
+    "192.168.88.11": {
+      "family": 4,
+      "mac": "00:00:00:00:00:00",
+      "ip": "192.168.88.11",
+      "conns": 200,
+      "rx_bytes": 210400,
+      "rx_pkts": 200,
+      "tx_bytes": 210400,
+      "tx_pkts": 200
+    },
+    "192.168.1.2": {
+      "family": 4,
+      "mac": "ea:e3:da:ee:6d:ac",
+      "ip": "192.168.1.2",
+      "conns": 50,
+      "rx_bytes": 52600,
+      "rx_pkts": 50,
+      "tx_bytes": 52600,
+      "tx_pkts": 50
+    }
+  },
+  "mac_chrome_separate_ip_rows_and_complete_labels": true
+}

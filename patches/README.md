@@ -1,5 +1,19 @@
 # 定制补丁索引
 
+## nlbwmon 三层统计候选
+
+- [后台 IP 统计补丁](nlbwmon/100-ip-fallback.patch)：取消每条记录等待 MAC，增加固定容量、5 秒过期的失败缓存，保留真实 MAC 和原数据库格式。
+- [LuCI 无 MAC 主机分组](nlbwmon/luci-ip-hosts.patch)：按 IP 区分未知 MAC，保留二层 MAC 汇总及明细链接。
+- [构建适配](../scripts/prepare-nlbwmon.py)：校验上游及补丁摘要，生成 r3 后台和界面包。
+- [验证与回滚](../docs/nlbwmon-routed-hosts-20261124.md)：原版故障复现、修复验收和适用边界分别记录。
+
+## QuickStart 设备列表兼容候选
+
+- [LuCI 代理适配](../scripts/prepare-quickstart-devices.py)：只修复已认证列表请求的空 ARP 错误，不改 QuickStart Go 二进制。
+- [接口与邻居读取](../packages/quickstart-devices/devices.lua)：默认沿用 lan，可选多个逻辑接口；多接口发现只读，不扫描网络。
+- [可见错误提示](../packages/quickstart-devices/errors.js)：真实列表失败明确显示，不再只呈现“暂无数据”。
+- [使用、验证与回滚](../docs/quickstart-devices-20261124.md)：说明本地邻居发现和跨三层清单的边界。
+
 补丁以相应 OpenWrt 树、LuCI feed 或已引入的插件配方为应用目录。首先查看每个补丁的目标路径，按来源锁准备相同版本，再执行 git apply --check。功能验收见固件文档和菜单清单。
 
 | 组件 | 补丁 |

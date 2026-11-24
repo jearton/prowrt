@@ -80,6 +80,7 @@ cp -a "$recipes/." "$repo/packages/netdata" package/custom/
 python3 "$repo/scripts/prepare-openclash.py" package/custom/luci-app-openclash
 "$repo/scripts/prepare-technitium-luci.sh" package/custom
 python3 "$repo/scripts/prepare-dns-service-hook.py" adguardhome feeds/packages/net/adguardhome
+python3 "$repo/scripts/prepare-nlbwmon.py" feeds/packages/net/nlbwmon feeds/luci/applications/luci-app-nlbwmon
 cp -a "$repo/sources/full/files/." files/
 cp -a "$repo/image-files/network-ui/usr" "$repo/image-files/network-ui/www" files/
 python3 "$repo/scripts/build-metadata.py" generate files/usr/share/prowrt/build.json
@@ -114,6 +115,7 @@ for name in quickstart luci-app-quickstart luci-i18n-quickstart-zh-cn; do
 done
 sed -i 's/^PKG_RELEASE:=1$/PKG_RELEASE:=2/' package/custom/quickstart/Makefile
 printf "\tlist module 'remoteDomain'\n" >> package/custom/quickstart/payload/etc/config/quickstart
+python3 "$repo/scripts/prepare-quickstart-devices.py" package/custom/luci-app-quickstart
 
 for name in netdata-config-readable netdata-container-network netdata-overview netdata-luci-bundled-dashboard; do
     git apply "$patches/$name.patch"
@@ -197,8 +199,12 @@ old["px5g-mbedtls"] = "11"
 old["openssl-util"] = "3.5.9-r1"
 old["libopenssl-conf"] = "3.5.9-r1"
 old["luci-app-openclash"] = "0.48.002-r3"
-old["ruby-json"] = old["ruby"]
+for name in ("ruby-json", "ruby-ostruct", "ruby-set", "ruby-tsort"):
+    old[name] = old["ruby"]
 old["adguardhome"] = "0.107.79-r2"
+old["nlbwmon"] = "2025.06.02~29236be6-r3"
+old["luci-app-nlbwmon"] = "26.288.56989~75a306d-r3"
+old["luci-app-quickstart"] = "0.12.10-r2"
 for name in ("docker", "dockerd", "docker-compose", "containerd", "runc", "tini",
              "luci-app-dockerman", "luci-i18n-dockerman-zh-cn"):
     old.pop(name, None)

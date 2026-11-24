@@ -1,0 +1,120 @@
+--- a/htdocs/luci-static/resources/view/nlbw/display.js
++++ b/htdocs/luci-static/resources/view/nlbw/display.js
+@@ -289,6 +289,8 @@
+ 	},
+ 
+ 	formatHostname(dns) {
++		if (typeof dns === 'string' && (/^\d{1,3}(\.\d{1,3}){3}$/.test(dns) || dns.includes(':')))
++			return dns;
+ 		if (dns === undefined || dns === null || dns === '')
+ 			return '-';
+ 
+@@ -308,10 +310,10 @@
+ 			function(c, r) {
+ 				return (r[c.rx_bytes] > 0 || r[c.tx_bytes] > 0);
+ 			},
+-			['mac'],
+-			//function(c, r) {
+-			//	return (r[c.mac] !== '00:00:00:00:00:00') ? r[c.mac] : r[c.ip];
+-			//},
++			function(c, r) {
++				const mac = r[c.mac].toUpperCase();
++				return mac !== '00:00:00:00:00:00' ? mac : r[c.ip];
++			},
+ 			function(r1, r2) {
+ 				return ((r2.rx_bytes + r2.tx_bytes) - (r1.rx_bytes + r1.tx_bytes));
+ 			}
+@@ -322,19 +324,19 @@
+ 		for (let rec of hostData) {
+ 			const mac = rec.mac.toUpperCase();
+ 			const key = (mac !== '00:00:00:00:00:00') ? mac : rec.ip;
+-			const dns = hostInfo[mac] ? hostInfo[mac].name : null;
++			const dns = (hostInfo[mac] ? hostInfo[mac].name : null) || hostNames[rec.ip] || rec.ip;
+ 
+ 			const cell = E('div', this.formatHostname(dns));
+ 
+ 			rows.push([
+ 				cell,
+ 				E('a', {
+-					'href':         '#' + rec.mac,
++					'href':         '#' + key,
+ 					'data-col':     'ip',
+ 					'data-tooltip': _('Source IP')
+-				}, (mac !== '00:00:00:00:00:00') ? mac : _('other')),
++				}, key),
+ 				[ rec.conns, E('a', {
+-					'href':         '#' + rec.mac,
++					'href':         '#' + key,
+ 					'data-col':     'layer7',
+ 					'data-tooltip': _('Protocol')
+ 				}, '%1000.2m'.format(rec.conns)) ],
+@@ -439,7 +441,10 @@
+ 		const records   = { };
+ 
+ 		const ipv6Data = this.query(
+-			null, ['family', 'mac'],
++			null, function(c, r) {
++				const mac = r[c.mac].toUpperCase();
++				return r[c.family] + '/' + (mac !== '00:00:00:00:00:00' ? mac : r[c.ip]);
++			},
+ 			function(r1, r2) {
+ 				return ((r2.rx_bytes + r2.tx_bytes) - (r1.rx_bytes + r1.tx_bytes));
+ 			}
+@@ -447,8 +452,9 @@
+ 
+ 		for (let rec of ipv6Data) {
+ 			const mac = rec.mac.toUpperCase();
+-			let fam = families[mac] || 0;
+-			const recs = records[mac] || {};
++			const key = mac !== '00:00:00:00:00:00' ? mac : rec.ip;
++			let fam = families[key] || 0;
++			const recs = records[key] || {};
+ 
+ 			if (rec.family == 4) {
+ 				rx4_total += rec.rx_bytes;
+@@ -462,9 +468,9 @@
+ 			}
+ 
+ 			recs[rec.family] = rec;
+-			records[mac] = recs;
+-
+-			families[mac] = fam;
++			records[key] = recs;
++
++			families[key] = fam;
+ 		}
+ 
+ 		for (let mac in families) {
+@@ -487,12 +493,10 @@
+ 		const rows = [];
+ 
+ 		for (let mac in records) {
+-			if (mac === '00:00:00:00:00:00')
+-				continue;
+-
+-			const dns = hostInfo[mac] ? hostInfo[mac].name : null;
+ 			const rec4 = records[mac][4];
+ 			const rec6 = records[mac][6];
++			const rec = rec4 || rec6;
++			const dns = (hostInfo[mac] ? hostInfo[mac].name : null) || hostNames[rec.ip] || rec.ip;
+ 
+ 			rows.push([
+ 				this.formatHostname(dns),
+@@ -853,7 +857,7 @@
+ 					E('table', { 'class': 'table', 'id': 'host-data' }, [
+ 						E('tr', { 'class': 'tr table-titles' }, [
+ 							E('th', { 'class': 'th left hostname' }, [ _('Host') ]),
+-							E('th', { 'class': 'th right' }, [ _('MAC') ]),
++							E('th', { 'class': 'th right' }, [ _('MAC') + ' / IP' ]),
+ 							E('th', { 'class': 'th right' }, [ _('Connections') ]),
+ 							E('th', { 'class': 'th right' }, [ _('Download (Bytes)') ]),
+ 							E('th', { 'class': 'th right' }, [ _('Download (Packets)') ]),
+@@ -946,7 +950,7 @@
+ 					E('table', { 'class': 'table', 'id': 'ipv6-data' }, [
+ 						E('tr', { 'class': 'tr table-titles' }, [
+ 							E('th', { 'class': 'th left' }, [ _('Host') ]),
+-							E('th', { 'class': 'th right' }, [ _('MAC') ]),
++							E('th', { 'class': 'th right' }, [ _('MAC') + ' / IP' ]),
+ 							E('th', { 'class': 'th double right hide-xs' }, [ _('Family') ]),
+ 							E('th', { 'class': 'th double right' }, [ _('Download (Bytes)') ]),
+ 							E('th', { 'class': 'th double right' }, [ _('Download (Packets)') ]),

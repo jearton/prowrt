@@ -12,6 +12,8 @@ on:
       - 'scripts/prepare-technitium-luci.sh'
       - 'scripts/prepare-dns-service-hook.py'
       - 'scripts/prepare-openclash.py'
+      - 'scripts/prepare-nlbwmon.py'
+      - 'scripts/prepare-quickstart-devices.py'
       - '*.lock.json'
       - 'profiles/network-ui.config'
       - 'sources/full/**'
