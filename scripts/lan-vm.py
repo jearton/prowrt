@@ -262,7 +262,8 @@ if __name__ == "__main__":
         metadata = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(metadata)
         actual = json.loads(guest.run("prowrt-version --json"))
-        metadata.verify(Path(__file__).resolve().parent.parent, actual)
+        source = Path(os.environ.get('PROWRT_FIRMWARE_SOURCE') or Path(__file__).resolve().parent.parent)
+        metadata.verify(source, actual)
         assert guest.run("prowrt-version --short").strip() == actual["version"]
         panels = json.loads(guest.run("cat /usr/share/prowrt/openclash-ui.json"))
         for name in ('zashboard', 'metacubexd'):

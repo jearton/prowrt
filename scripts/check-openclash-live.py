@@ -74,9 +74,13 @@ def main(directory):
     lab = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(lab)
     guest = lab.Guest(directory)
-    jar = http.cookiejar.MozillaCookieJar(str(directory / 'http.cookies'))
-    jar.load(ignore_discard=True, ignore_expires=True)
+    jar = http.cookiejar.CookieJar()
     browser = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+    credentials = urllib.parse.urlencode({'luci_username': 'root',
+        'luci_password': (directory / 'root-password').read_text()}).encode()
+    browser.open(BASE + '/cgi-bin/luci/', data=credentials, timeout=15).read()
+    if not any(c.name == 'sysauth_http' and not c.is_expired() for c in jar):
+        raise RuntimeError('Native LuCI login did not establish a test session')
 
     def form():
         document = browser.open(PAGE, timeout=15).read().decode()

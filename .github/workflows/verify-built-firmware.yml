@@ -1,0 +1,71 @@
+name: Verify an existing full firmware image
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Same-repository full-build run containing the immutable image
+        required: true
+        type: string
+      prepare_release:
+        description: Create a draft release only after VM acceptance passes
+        default: false
+        type: boolean
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BUILD_RUN_ID: ${{ inputs.build_run_id }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Download the exact compiled artifact and its source
+        run: |
+          [[ "$BUILD_RUN_ID" =~ ^[0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID" > "$RUNNER_TEMP/run.json"
+          jq -e --arg repo "$GITHUB_REPOSITORY" '.repository.full_name == $repo and .head_repository.full_name == $repo and .path == ".github/workflows/build-firmware.yml" and .head_branch == "main"' "$RUNNER_TEMP/run.json"
+          revision=$(jq -er .head_sha "$RUNNER_TEMP/run.json")
+          [[ "$revision" =~ ^[0-9a-f]{40}$ ]]
+          git fetch --no-tags --depth=1 origin "$revision"
+          git worktree add --detach "$RUNNER_TEMP/firmware-source" "$revision"
+          gh run download "$BUILD_RUN_ID" --repo "$GITHUB_REPOSITORY" \
+            --name "unverified-firmware-$revision" --dir "$RUNNER_TEMP/firmware"
+          printf 'PROWRT_FIRMWARE_SOURCE=%s/firmware-source\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+          printf 'FIRMWARE_REVISION=%s\n' "$revision" >> "$GITHUB_ENV"
+      - name: Prepare VM and identity verification tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -qy --no-install-recommends qemu-system-x86 ovmf python3-websocket dnsutils tcpdump squashfs-tools
+          if test -c /dev/kvm; then sudo chown "$(id -u)" /dev/kvm; fi
+      - name: Verify the unchanged image and source identity
+        run: bash "$PROWRT_FIRMWARE_SOURCE/scripts/verify-firmware.sh" "$RUNNER_TEMP/firmware"
+      - name: Boot the exact image with the current acceptance harness
+        run: bash scripts/check-fresh-lan.sh "$RUNNER_TEMP/firmware/openwrt-x86-64-generic-squashfs-combined-efi.img.gz"
+      - name: Preserve acceptance evidence
+        run: |
+          jq -n --arg revision "$FIRMWARE_REVISION" --arg run "$BUILD_RUN_ID" --arg harness "$GITHUB_SHA" \
+            '{status:"passed",firmware_source:$revision,build_run:$run,harness_source:$harness,image_rebuilt:false}' > "$RUNNER_TEMP/firmware/acceptance.json"
+          cp "$RUNNER_TEMP/firmware/acceptance.json" "$RUNNER_TEMP/acceptance.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: same-image-acceptance-${{ inputs.build_run_id }}
+          path: ${{ runner.temp }}/acceptance.json
+      - name: Prepare an unpublished release with the accepted files
+        if: inputs.prepare_release
+        run: |
+          tag="v$(cat "$PROWRT_FIRMWARE_SOURCE/VERSION")"
+          [[ "$tag" =~ ^v[0-9][a-zA-Z0-9._-]{0,126}$ ]]
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$FIRMWARE_REVISION" \
+            --draft --title "ProWrt ${tag#v}" \
+            --notes "Same-image acceptance: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Release notes pending final review." \
+            "$RUNNER_TEMP/firmware/openwrt-x86-64-generic-squashfs-combined-efi.img.gz" \
+            "$RUNNER_TEMP/firmware/openwrt-x86-64-generic.manifest" \
+            "$RUNNER_TEMP/firmware/build.json" "$RUNNER_TEMP/firmware/SHA256SUMS"
