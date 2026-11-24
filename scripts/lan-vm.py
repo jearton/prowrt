@@ -213,6 +213,7 @@ printf '\nCI guest boot and process state\n'
 cat /proc/cmdline
 ubus call service list '{"name":"technitium"}'
 ubus call service list '{"name":"technitium-provision"}'
+ubus call service list '{"name":"ttyd"}'
 test -e /etc/technitium/provisioned && echo INITIALIZATION_COMPLETE
 printf '\nListening sockets\n'
 netstat -lntup
@@ -224,7 +225,7 @@ uci -q get network.lan.ipaddr
 uci -q show dhcp
 uci -q show uhttpd
 printf '\nTechnitium startup messages\n'
-logread | grep -Ei 'technitium|dnsmasq|procd|uhttpd' | tail -n 60
+logread | grep -Ei 'technitium|dnsmasq|procd|uhttpd|ttyd' | tail -n 100
 for logfile in /tmp/technitium-logs/*.log; do
     test ! -f "$logfile" || tail -n 35 "$logfile"
 done
