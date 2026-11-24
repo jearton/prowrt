@@ -64,6 +64,8 @@ jobs:
           test -x sources/full/files/usr/bin/prowrt-version
       - name: Check DNS preset and resolver lifecycle integration
         run: |
+          baseline=$(python3 -c 'import json; print(json.load(open("patches/openclash/series.json"))["base_commit"])')
+          git cat-file -e "$baseline^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$baseline"
           ruby tests/check-openclash-dns.rb
           python3 -m unittest discover -s tests -p 'test_dns_service_hook.py' -v
           python3 -m unittest discover -s tests -p 'test_openclash_patch.py' -v
