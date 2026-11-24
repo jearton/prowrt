@@ -1,6 +1,6 @@
 # QuickStart 设备列表兼容修复
 
-候选固件 `25.12.6-20261124.3` 尚未构建发布。界面包为 `luci-app-quickstart 0.12.10-r2`；QuickStart 后台继续是 `0.13.1-r2`。本次不修改 Go 后台二进制，不修改 Technitium 或 Console 源码，不修改 Netdata。
+固件 [`25.12.6-20261124.3`](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261124.3) 已通过同镜像 VM 验收并发布；[发布证据](evidence/firmware-20261125/publication.json)。界面包为 `luci-app-quickstart 0.12.10-r2`；QuickStart 后台继续是 `0.13.1-r2`。本次不修改 Go 后台二进制，不修改 Technitium 或 Console 源码，不修改 Netdata。
 
 ## 来源与每项修改
 
@@ -35,4 +35,4 @@ uci commit quickstart
 - 未认证请求继续失败，不返回兼容设备列表。
 - Mac Chrome 显示两个接口的设备和只读提示；配置不存在的接口后显示明确错误；恢复默认 lan 后警告消失且正常列表恢复。
 
-原 VM 磁盘保留；生产更新前须自行保存匹配的旧 APK。回滚安装旧 `luci-app-quickstart`，删除 `quickstart.main.device_interfaces`；如回退到旧版，空 ARP 错误也会恢复。测试不改生产设备、不刷整机。新固件仍需构建和整体验收后再发布。实际 API 与浏览器检查见[验收数据](evidence/quickstart-devices-20261124/acceptance.json)。
+原 VM 磁盘保留；生产更新前须自行保存匹配的旧 APK。回滚安装旧 `luci-app-quickstart`，删除 `quickstart.main.device_interfaces`；如回退到旧版，空 ARP 错误也会恢复。测试不改生产设备、不刷整机。完整镜像验收及发布状态见上述发布证据。实际 API 与浏览器检查见[验收数据](evidence/quickstart-devices-20261124/acceptance.json)。

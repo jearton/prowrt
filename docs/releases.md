@@ -1,5 +1,18 @@
 # 固件发布与下载
 
+最新正式版为 [25.12.6-20261124.3](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261124.3)，于 2026-11-25 发布。GitHub 四个附件与原始 CI 文件摘要一致；[同镜像 VM 验收](https://github.com/jearton/prowrt/actions/runs/45484345242)和[GHCR 发布／匿名完整下载](https://github.com/jearton/prowrt/actions/runs/45485067335)通过。473 包版本及内核 ABI 严格校验通过，243271 字节的 YAML 保存、应用与实际规则匹配通过。[发布证据](evidence/firmware-20261125/publication.json)
+
+```sh
+oras pull ghcr.io/jearton/prowrt:v25.12.6-20261124.3
+sha256sum -c SHA256SUMS
+```
+
+不可变引用：`ghcr.io/jearton/prowrt@sha256:951189eebae8993a9d2d0c72a6001e780cf9faa26f7009a0faa700030818502c`。
+
+固件源码为 `df758efba11bea310f72580255423d4cbe189c93`，验收程序提交单独记录。原完整构建 run 因读取测试 Cookie 的问题在验收阶段标红，镜像编译及清单通过；修正测试登录方式后复验原镜像，没有改动固件内容。另一次终端握手中断未复现，已保留记录，未放宽终端权限或测试断言。硬件与物理网口仍须在目标机器验收。
+
+## 历史发布与通用下载说明
+
 ProWrt 在 GHCR 仅发布一种制品：定制固件包，包含 EFI 镜像、APK 软件包清单和 SHA-256 校验和。统一路径为 `ghcr.io/jearton/prowrt`，正式版和 CI 候选用 tag 区分。使用 ORAS 下载并核对校验和：
 
 ```sh
@@ -7,7 +20,7 @@ oras pull ghcr.io/jearton/prowrt:v25.12.6-20261120.2
 sha256sum -c SHA256SUMS
 ```
 
-当前统一路径的不可变下载引用：
+历史 `25.12.6-20261120.2` 的不可变下载引用：
 
 ```sh
 oras pull ghcr.io/jearton/prowrt@sha256:225bfe83d665046f748fc822b323f68493b15f20036b535bfb575b04950ed31a
@@ -65,9 +78,9 @@ oras pull ghcr.io/jearton/openwrt-pro/firmware@sha256:18298a9616ea62f169e96cdfe7
 
 正式发布必须使用包含面板改动的同一干净源码提交构建，并完成镜像身份、包清单、全新启动、隔离服务验证及匿名下载校验。先前成功的 CI 构建不包含本次面板更新，不能作为该候选的发布附件。
 
-## 25.12.6-20261124.3 本地候选
+## 25.12.6-20261124.3 正式版
 
-此候选在 `.2` 源码基础上新增以下修复，准备重新构建，尚未发布。不要把 `.2` 的 CI 产物当作包含这些修复的镜像。
+此版在 `.2` 源码基础上新增以下修复；已发布，验收和下载见本文开头。不要把 `.2` 的 CI 产物当作包含这些修复的镜像。
 
 - nlbwmon r3 后台：三层终端缺 MAC 时立即记录 IP 与计数，固定容量短期失败缓存，保留先于 NEW 的观测增量。
 - luci-app-nlbwmon r3：未知 MAC 按 IP 展示、明细及协议家族分组，完整 IP 名称。

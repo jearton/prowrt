@@ -1,0 +1,43 @@
+{
+  "version": "25.12.6-20261124.3",
+  "firmware_source": "df758efba11bea310f72580255423d4cbe189c93",
+  "compiled_packages": 473,
+  "manifest_kernel_abi_permissions_and_identity_passed": true,
+  "build_run": 45470706352,
+  "build_workflow_conclusion": "failure",
+  "original_acceptance_failure": "curl HttpOnly cookie file was not loaded by Python MozillaCookieJar",
+  "same_image_acceptance_run": 45484345242,
+  "same_image_acceptance_conclusion": "success",
+  "harness_source": "69fe3330664bd07994df09debd64f7afe259a32b",
+  "large_yaml_saved_and_applied_bytes": 243271,
+  "terminal_handshake_interruption_in_another_run_not_reproduced": true,
+  "terminal_authorization_not_relaxed": true,
+  "publish_run": 45485067335,
+  "publish_conclusion": "success",
+  "anonymous_full_pull_and_checksums_verified_by_workflow": true,
+  "anonymous_manifest_and_local_file_digests_verified": true,
+  "ghcr_reference": "ghcr.io/jearton/prowrt@sha256:951189eebae8993a9d2d0c72a6001e780cf9faa26f7009a0faa700030818502c",
+  "github_release": "https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261124.3",
+  "files": [
+    {
+      "name": "openwrt-x86-64-generic-squashfs-combined-efi.img.gz",
+      "bytes": 182526937,
+      "digest": "sha256:d69b4bd75ffe09c2faab072358bf64a14546c0d27e562778833877caa26a293c"
+    },
+    {
+      "name": "openwrt-x86-64-generic.manifest",
+      "bytes": 13450,
+      "digest": "sha256:683675f8b58577d795865ffb2bd6bb82ac8d8fe86b67dbdbc62c8fa5fccb8186"
+    },
+    {
+      "name": "build.json",
+      "bytes": 1029,
+      "digest": "sha256:1ef43f0e49a98e882a687821cb76911f39e09c929bb63aa2b0852eb2068e3ccb"
+    },
+    {
+      "name": "SHA256SUMS",
+      "bytes": 293,
+      "digest": "sha256:6a3915ace311a144053aab0870347a9222aeaa5b12e891ec0b868a821cb01e75"
+    }
+  ]
+}
