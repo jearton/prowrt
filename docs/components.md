@@ -17,7 +17,7 @@
 | VPN → Tailscale、WireGuard | [LuCI Tailscale 1.2.17](https://github.com/jearton/luci-app-tailscale)、[Tailscale 1.104.7](https://github.com/tailscale/tailscale)、WireGuard | 远程接入和隧道 |
 | 服务 → OAF 行为管理 | [OpenAppFilter](https://github.com/destan19/OpenAppFilter) | 应用识别与过滤 |
 | 网络 → 负载均衡、定时限速、SQM 队列管理 | [nftables mwan3](https://github.com/dl12345/mwan3)、EQoS/EQoS Plus、SQM | 多 WAN 策略、限速和队列管理 |
-| 网络 → 流量统计、网速测试、IP/MAC 绑定 | nlbwmon、vnStat2、iperf3/LibreSpeed、Arpbind | 计量、测速和静态邻居 |
+| 服务 → 带宽监控；网络 → 网速测试、IP/MAC 绑定 | nlbwmon、vnStat2、iperf3/LibreSpeed、Arpbind | 计量、测速和静态邻居 |
 | 网络 → 接口、防火墙 | 原生 netifd 支持 Macvlan、多 PPPoE、fw4 软件流量卸载 | 对应旧 Macvlan、多拨、Turbo ACC 的部分功能；双 WAN 与硬件选项按设备验收 |
 
 固件服务集中于路由、DNS、VPN、流量管理和监控。Technitium 使用原生后台和控制台；镜像不包含 Docker、Samba、WebDAV、DDNSTO、下载服务和网易云解锁。

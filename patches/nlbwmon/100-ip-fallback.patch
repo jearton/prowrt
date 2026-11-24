@@ -1,0 +1,231 @@
+--- a/nfnetlink.c
++++ b/nfnetlink.c
+@@ -34,7 +34,6 @@
+ #include "neigh.h"
+ 
+ 
+-static uint32_t n_pending_inserts = 0;
+ static struct nl_sock *nl = NULL;
+ static struct uloop_fd ufd = { };
+ 
+@@ -70,64 +69,14 @@
+ };
+ 
+ 
+-struct delayed_record {
+-	struct uloop_timeout timeout;
+-	struct record record;
+-};
+-
+ static void
+ database_insert_immediately(struct record *r)
+ {
+-	if (r->count != 0)
++	/* A dump/update can precede the NEW notification or discover a new MAC.
++	 * Upsert observed deltas with count=0; only NEW increments connections.
++	 * Ignore empty updates so idle old flows do not fill the database. */
++	if (r->count || r->in_bytes || r->out_bytes || r->in_pkts || r->out_pkts)
+ 		database_insert(gdbh, r);
+-	else
+-		database_update(gdbh, r);
+-}
+-
+-static void
+-database_insert_delayed_cb(struct uloop_timeout *t)
+-{
+-	int err;
+-	struct delayed_record *dr;
+-
+-	dr = container_of(t, struct delayed_record, timeout);
+-	err = update_macaddr(dr->record.family, &dr->record.src_addr.in6);
+-
+-	if (err == 0)
+-		lookup_macaddr(dr->record.family, &dr->record.src_addr.in6,
+-		               &dr->record.src_mac.ea);
+-
+-	database_insert_immediately(&dr->record);
+-	free(dr);
+-
+-	if (n_pending_inserts > 0)
+-		n_pending_inserts--;
+-}
+-
+-static int
+-database_insert_delayed(struct record *r)
+-{
+-	struct delayed_record *dr;
+-
+-	/* to avoid gobbling up too much memory, tie the maximum allowed number
+-	 * of pending insertions to the configured database limit */
+-	if (opt.db.limit > 0 && n_pending_inserts >= opt.db.limit) {
+-		fprintf(stderr, "Too many pending MAC address lookups\n");
+-		database_insert_immediately(r);
+-		return -ENOSPC;
+-	}
+-
+-	dr = calloc(1, sizeof(*dr));
+-
+-	if (!dr)
+-		return -ENOMEM;
+-
+-	dr->record = *r;
+-	dr->timeout.cb = database_insert_delayed_cb;
+-
+-	n_pending_inserts++;
+-
+-	return uloop_timeout_set(&dr->timeout, 500) ? -EEXIST : 0;
+ }
+ 
+ static bool
+@@ -180,7 +129,6 @@
+ static void
+ parse_event(void *reply, int len, bool allow_insert, bool update_mac)
+ {
+-	int err;
+ 	struct nlmsghdr *hdr;
+ 	struct genlmsghdr *gnlh;
+ 	static struct nlattr *attr[__CTA_MAX + 1];
+@@ -274,13 +222,11 @@
+ 
+ 		if (update_mac)
+ 			update_macaddr(r.family, &r.src_addr.in6);
+-
+-		err = lookup_macaddr(r.family, &r.src_addr.in6, &r.src_mac.ea);
+ 
+-		if (update_mac && err == -ENOENT)
+-			database_insert_delayed(&r);
+-		else
+-			database_insert_immediately(&r);
++		/* Routed hosts need not have an Ethernet neighbor. Keep their IP
++		 * and counters immediately, without a per-record retry queue. */
++		lookup_macaddr(r.family, &r.src_addr.in6, &r.src_mac.ea);
++		database_insert_immediately(&r);
+ 	}
+ }
+ 
+--- a/neigh.c
++++ b/neigh.c
+@@ -22,6 +22,7 @@
+ #include <stdbool.h>
+ #include <string.h>
+ #include <errno.h>
++#include <time.h>
+ 
+ #include <endian.h>
+ 
+@@ -32,7 +33,20 @@
+ #include <linux/rtnetlink.h>
+ 
+ #include "neigh.h"
++#include "mac-miss-cache.h"
+ 
++typedef char mac_miss_key_size_check[(sizeof(union neigh_key) == MAC_MISS_KEY_SIZE) ? 1 : -1];
++static struct mac_miss_cache misses;
++
++static uint64_t
++monotonic_milliseconds(void)
++{
++	struct timespec now;
++	if (clock_gettime(CLOCK_MONOTONIC, &now))
++		return 0;
++	return (uint64_t)now.tv_sec * 1000 + now.tv_nsec / 1000000;
++}
++
+ static struct avl_tree neighbors;
+ 
+ static struct nl_sock *rt_sock = NULL;
+@@ -293,6 +307,7 @@
+ 	union neigh_key key = { };
+ 	struct ether_addr *res;
+ 	int ifindex;
++	uint64_t now = monotonic_milliseconds();
+ 
+ 	if (family == AF_INET6) {
+ 		key.data.family = AF_INET6;
+@@ -302,6 +317,9 @@
+ 		key.data.family = AF_INET;
+ 		key.data.addr.in.s_addr = be32toh(((struct in_addr *)addr)->s_addr);
+ 	}
++
++	if (mac_miss_hit(&misses, &key, now))
++		return -ENOENT;
+ 
+ 	res = ipaddr_to_macaddr(family, &key.data.addr);
+ 
+@@ -311,10 +329,13 @@
+ 		if (ifindex > 0)
+ 			res = ifindex_to_macaddr(ifindex);
+ 
+-		if (!res)
++		if (!res) {
++			mac_miss_mark(&misses, &key, now);
+ 			return -ENOENT;
++		}
+ 	}
+ 
++	mac_miss_forget(&misses, &key);
+ 	ptr = avl_find_element(&neighbors, &key, tmp, node);
+ 
+ 	if (!ptr) {
+--- /dev/null
++++ b/mac-miss-cache.h
+@@ -0,0 +1,59 @@
++/* SPDX-License-Identifier: ISC */
++#ifndef NLBWMON_MAC_MISS_CACHE_H
++#define NLBWMON_MAC_MISS_CACHE_H
++
++#include <stdint.h>
++#include <string.h>
++
++/* Fixed memory; hash collisions evict an older failure rather than growing.
++ * A failed neighbor lookup must not permanently hide a newly reachable MAC.
++ * The upstream zero-initialized neigh_key is exactly 20 bytes. */
++#define MAC_MISS_SLOTS 4096
++#define MAC_MISS_KEY_SIZE 20
++#define MAC_MISS_TTL_MS 5000
++
++struct mac_miss_entry {
++	uint8_t key[MAC_MISS_KEY_SIZE];
++	uint64_t until;
++};
++
++struct mac_miss_cache {
++	struct mac_miss_entry entries[MAC_MISS_SLOTS];
++};
++
++static inline struct mac_miss_entry *
++mac_miss_slot(struct mac_miss_cache *cache, const void *key)
++{
++	const uint8_t *bytes = key;
++	uint32_t hash = 2166136261u;
++	unsigned int i;
++	for (i = 0; i < MAC_MISS_KEY_SIZE; i++)
++		hash = (hash ^ bytes[i]) * 16777619u;
++	return &cache->entries[hash & (MAC_MISS_SLOTS - 1)];
++}
++
++static inline int
++mac_miss_hit(struct mac_miss_cache *cache, const void *key, uint64_t now)
++{
++	struct mac_miss_entry *entry = mac_miss_slot(cache, key);
++	return now && entry->until > now && !memcmp(entry->key, key, MAC_MISS_KEY_SIZE);
++}
++
++static inline void
++mac_miss_mark(struct mac_miss_cache *cache, const void *key, uint64_t now)
++{
++	struct mac_miss_entry *entry = mac_miss_slot(cache, key);
++	if (!now)
++		return;
++	memcpy(entry->key, key, MAC_MISS_KEY_SIZE);
++	entry->until = now + MAC_MISS_TTL_MS;
++}
++
++static inline void
++mac_miss_forget(struct mac_miss_cache *cache, const void *key)
++{
++	struct mac_miss_entry *entry = mac_miss_slot(cache, key);
++	if (!memcmp(entry->key, key, MAC_MISS_KEY_SIZE))
++		entry->until = 0;
++}
++#endif

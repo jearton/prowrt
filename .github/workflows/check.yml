@@ -55,7 +55,7 @@ jobs:
       - name: Check firmware identity and cache boundaries
         run: |
           sudo apt-get update -q
-          sudo apt-get install -qy --no-install-recommends squashfs-tools ruby
+          sudo apt-get install -qy --no-install-recommends squashfs-tools ruby lua5.1
           python3 -m unittest discover -s tests -p 'test_build_support.py' -v
           node tests/check-prowrt-status.cjs
           sh -n sources/full/files/usr/bin/prowrt-version
@@ -79,6 +79,13 @@ jobs:
           export CHROME_EXECUTABLE="$(command -v google-chrome)"
           export PLAYWRIGHT_MODULE="$RUNNER_TEMP/editor-browser/node_modules/playwright"
           node scripts/check-openclash-editor.cjs
+      - name: Check nlbwmon routed host fallback
+        run: python3 scripts/check-nlbwmon.py "$RUNNER_TEMP/nlbwmon-check"
+      - name: Check QuickStart device discovery compatibility
+        run: |
+          lua5.1 tests/check-quickstart-devices.lua packages/quickstart-devices/devices.lua
+          node --check packages/quickstart-devices/errors.js
+          python3 -c 'import ast; ast.parse(open("scripts/prepare-quickstart-devices.py").read())'
       - name: Check independently pinned OpenClash dashboards
         run: |
           python3 -m unittest discover -s tests -p 'test_openclash_ui.py' -v

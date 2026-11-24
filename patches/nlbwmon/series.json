@@ -1,0 +1,17 @@
+{
+  "source_commit": "29236be687927b0c81ee6e2642e7caa8787c4ad3",
+  "backend_release": "3",
+  "luci_release": "3",
+  "recipe_sha256": "92b516473733bf04ff51c04807f789b47a567ab49173e7a80767b94e808725bb",
+  "luci_recipe_sha256": "d3022d6b3e191f2b46f074924bcf3b85ab10c7f35a066a0b2d5ac461a9dacdbd",
+  "luci_display_sha256": "fd787840273e0dc2e7dafa31a4240e3aabada9b9f2ccc3ffc23ed01a8e8a8a3b",
+  "source_files_sha256": {
+    "nfnetlink.c": "b150a292531c060901d78a2af5cae2b9dde41bf1231c9dc18b9796c7d992b804",
+    "neigh.c": "b52e7e7432f4e5948b3ce3ff65495f9ba3faf6cad086909ee2af92aa4750ba41",
+    "neigh.h": "df68785efbf0c18de4aabb619d94891ac182196dc05c757200caaacc3097617e"
+  },
+  "patches_sha256": {
+    "100-ip-fallback.patch": "ace5f4bb8797f1cbb0f0e494052ade7f67f9c761a13aab2df52cfecd509a5c2d",
+    "luci-ip-hosts.patch": "59f8d55360e23c06484c0c4a5620002929f2f6e430e56c8fe781439698dc1395"
+  }
+}
