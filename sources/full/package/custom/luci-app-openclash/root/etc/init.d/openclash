@@ -836,6 +836,7 @@ check_core_status()
    if [ "$1" == "start" ]; then
       change_dnsmasq "$enable_redirect_dns"
       set_firewall
+      ruby /usr/share/openclash/dns_link.rb ready '' "$dns_port" >> "$LOG_FILE" 2>&1 || LOG_WARN "DNS linkage failed; check DNS settings and logread -e openclash-dns-link"
       LOG_TIP "OpenClash Start Successful!"
    else
       set_firewall
@@ -3719,6 +3720,10 @@ get_config()
    http_port=$(uci_get_config "http_port")
    socks_port=$(uci_get_config "socks_port")
    enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
+   # New forwarding modes use their own persistent fw4 rules and resolver API.
+   # Do not enter the native dnsmasq rewrite/restore or direct-to-core branches.
+   dns_forward_mode="$enable_redirect_dns"
+   case "$enable_redirect_dns" in 3|4) enable_redirect_dns=0 ;; esac
    if [ "$(uci_get_config "fakeip_range")"  == "0" ]; then
       fakeip_range=$(ruby_read "$RAW_CONFIG_FILE" "['dns']['fake-ip-range']")
    else
@@ -3896,6 +3901,26 @@ start_service()
       else
          LOG_OUT "Step 3: Quick Start Mode, Skip Modify The Config File..."
       fi
+
+      # Read-only validation of native DNS settings; do not generate DNS/groups.
+      forward_config="$TMP_CONFIG_FILE"
+      $QUICK_START && forward_config="$CONFIG_FILE"
+      ruby /usr/share/openclash/dns_native_check.rb "$forward_config" >> "$LOG_FILE" 2>&1 || {
+         LOG_ERROR "Native DNS preset rejected; select existing proxy groups in the native DNS server editor"
+         return 1
+      }
+      case "$dns_forward_mode" in 3|4)
+         ruby /usr/share/openclash/dns_link.rb preparing '' "$dns_port" >> "$LOG_FILE" 2>&1 || {
+            LOG_ERROR "Cannot enforce the selected resolver upstream; verify DNS API credentials, listener and port"
+            return 1
+         }
+         ruby /usr/share/openclash/dns_firewall.rb apply >> "$LOG_FILE" 2>&1 || {
+            LOG_ERROR "Cannot apply local DNS firewall rules; check source zones and existing DNS redirects"
+            return 1
+         }
+      ;;
+      *) ruby /usr/share/openclash/dns_firewall.rb deactivate >> "$LOG_FILE" 2>&1 || return 1 ;;
+      esac
 
       LOG_OUT "Step 4: Start Running The Clash Core..."
       start_run_core

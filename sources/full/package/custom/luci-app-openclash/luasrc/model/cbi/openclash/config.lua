@@ -397,6 +397,7 @@ end
 end
 
 def = s:option(TextValue, "default")
+def.template = "openclash/readonly_config"
 if fs.isfile(sconf) then
 	---def.description = align_mid..translate("Config File Edited By OpenClash For Running")..align_mid_off
 else

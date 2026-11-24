@@ -153,4 +153,7 @@ done
 
 python3 "$repo/scripts/check-ttyd-login.py" "$test_dir/http.cookies" "$test_dir/root-password" password
 python3 "$repo/scripts/lan-vm.py" forced-dns "$test_dir"
+if [[ -f $repo/VERSION && -z ${FRESH_LAN_FIXTURE_APKS:-} ]]; then
+    python3 "$repo/scripts/check-openclash-live.py" "$test_dir"
+fi
 echo 'Fresh isolated IPv4 boot verified LuCI, Netdata, authorized ttyd, and the Technitium console and DNS on UDP/TCP'

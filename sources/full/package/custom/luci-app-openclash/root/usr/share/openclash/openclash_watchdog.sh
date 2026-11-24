@@ -229,6 +229,9 @@ do
    sleep 1
 done >/dev/null 2>&1
 
+# Reuse this existing watchdog. No separate DNS polling daemon or cron.
+ruby /usr/share/openclash/dns_link.rb reconcile '' "$dns_port" >> "$LOG_FILE" 2>&1 || LOG_WATCHDOG "DNS linkage failed; fixed upstream is not restored to public DNS"
+
 #check the clash service status
 CORE_JSON=$(ubus call service list '{"name":"openclash"}' 2>/dev/null)
 if [ -n "$CORE_JSON" ]; then

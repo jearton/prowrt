@@ -115,10 +115,15 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 - **Advanced Forwarding**：随包提供并在首启安装扩展，为 DNS 分流提供基础。
 - **强制 LAN DNS**：将 LAN 的 IPv4 TCP/UDP 53 请求重定向至本机，保留客户端源 IP；升级时保留管理员对该规则的启停选择。
 - **DHCP 下发 DNS**：LAN 未配置 DNS 选项时，补充下发路由器地址。
-- **OpenClash DNS 接管**：默认关闭 OpenClash 自身的 DNS 重定向，避免与 Technitium 入口重复接管。
+- **OpenClash DNS 模式**：新装预选 Technitium 转发，OpenClash 本身仍默认停用；启用后由本地主 DNS 的 53 端口接收，不直接绕过主 DNS。
 - **OpenClash IPv4 监听**：内核禁用 IPv6 时将核心监听地址改为 `0.0.0.0`，避免透明 UDP 监听的 IPv6 套接字报错。
 - **DNS 与透明代理顺序**：强制 LAN DNS 规则启用时，LAN 的 53 请求先退出 OpenClash 接管链，再由 fw4 重定向给 Technitium，保留来源分组。
 - **UDP 来源准入**：在接管 Fake-IP 的 UDP 流量前应用 LAN 来源访问控制，避免 Fake-IP 绕过来源白名单。
+- **原生 DNS 分流预设**：复用 OpenClash 的自定义 DNS、指定代理组、Nameserver-Policy 和覆写脚本；首次选择订阅已有组，不写死组名，不覆盖业务规则和节点。
+- **主 DNS 转发模式**：扩展原生本地 DNS 劫持下拉，选择 Technitium／AdGuard Home 后自动处理上游校正、所选内网区域的 53 接管和代理避让；支持双 DNS 入口，停止时不恢复公共上游。新装未配置并启动核心时不激活上游校正。
+- **升级保留补丁**：独立补丁及兼容清单在构建时自动重放／检查，失败阻止发布；APK 精确版本约束与一键更新保护阻止未适配包覆盖。
+- **联动凭证和回滚**：凭证保存在 root 专用文件中，首次调整前记录原全局上游；已有 watchdog 检查偏离，主 DNS 启动时执行一次校正，不增加常驻进程。
+- **大 YAML 保存和应用**：只读运行配置不参与提交，源配置走文件流式提交；保留原生 CSRF 校验和 100 KiB 普通字段上限，传输不支持时阻止应用并保留编辑内容。
 - **内部 DNS 端口保护**：防火墙拒绝客户端直接访问 5353、7874 端口。
 - **WAN 访问保护**：防火墙拒绝从 WAN 访问 Technitium 的 53、5380 端口。
 - **AdGuard Home 备用**：保留软件包，默认停用。
@@ -126,6 +131,8 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 - **可选服务默认停用**：OpenClash、DDNS-GO、Tailscale、mwan3、OAF、UnblockNeteaseMusic 和 SQM 默认不自启，按实际需求配置启用。
 
 实现文件见 [Technitium 首启策略](sources/full/files/usr/libexec/technitium-provision)、[DNS 和防火墙默认值](sources/full/files/etc/uci-defaults/93-technitium-dns)及[构建配置](profiles/network-ui.config)。
+
+新增可选功能的界面路径、适用版本、验收与回滚见 [OpenClash DNS 联动和大配置维护说明](docs/openclash-dns-integration-20261124.md)。这些候选源码修改不表示历史发布镜像已经更新。
 
 #### 打包和构建兼容性
 

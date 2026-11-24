@@ -12,7 +12,7 @@
 | 系统 → 定时重启、关机、自定义命令 | Autoreboot、PoweroffDevice、LuCI Commands | 管理操作 |
 | 服务 → Technitium DNS | [Technitium 15.6.2](https://github.com/TechnitiumSoftware/DnsServer) · [控制台 1.4.2](https://github.com/byGarcia/technitium-console) · [LuCI 插件](https://github.com/jearton/luci-app-technitium) | 主 DNS、域名区域、广告过滤和查询统计 |
 | 服务 → AdGuard Home | [AdGuard Home 0.107.79](https://github.com/AdguardTeam/AdGuardHome) | 可选 DNS 过滤，随镜像提供，默认停用 |
-| 服务 → OpenClash | [OpenClash 0.48.002-r2](https://github.com/vernesong/OpenClash)、[Mihomo 1.19.34](https://github.com/MetaCubeX/mihomo)、[Zashboard 3.30.0](https://github.com/Zephyruso/zashboard)、[MetaCubeXD 1.276.0](https://github.com/MetaCubeX/metacubexd) | 基于规则的代理分流；面板使用独立的版本和 SHA-256 锁定 |
+| 服务 → OpenClash | [OpenClash 0.48.002-r3](https://github.com/vernesong/OpenClash)、[Mihomo 1.19.34](https://github.com/MetaCubeX/mihomo)、[Zashboard 3.30.0](https://github.com/Zephyruso/zashboard)、[MetaCubeXD 1.276.0](https://github.com/MetaCubeX/metacubexd) | 基于规则的代理分流；面板独立锁定；r3 增加可选 DNS 分流／主 DNS 联动及大 YAML 表单修复，见[维护说明](openclash-dns-integration-20261124.md) |
 | 服务 → DDNS-GO | [DDNS-GO 6.17.8](https://github.com/jeessy2/ddns-go) | 动态 DNS |
 | VPN → Tailscale、WireGuard | [LuCI Tailscale 1.2.17](https://github.com/jearton/luci-app-tailscale)、[Tailscale 1.104.7](https://github.com/tailscale/tailscale)、WireGuard | 远程接入和隧道 |
 | 服务 → OAF 行为管理 | [OpenAppFilter](https://github.com/destan19/OpenAppFilter) | 应用识别与过滤 |

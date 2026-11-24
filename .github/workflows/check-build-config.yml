@@ -10,6 +10,8 @@ on:
       - 'scripts/build-metadata.py'
       - 'scripts/build-metrics.py'
       - 'scripts/prepare-technitium-luci.sh'
+      - 'scripts/prepare-dns-service-hook.py'
+      - 'scripts/prepare-openclash.py'
       - '*.lock.json'
       - 'profiles/network-ui.config'
       - 'sources/full/**'

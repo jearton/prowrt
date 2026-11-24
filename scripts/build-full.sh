@@ -77,7 +77,9 @@ if find package/feeds -type l -name tailscale -print -quit | grep -q .; then
 fi
 mkdir -p package/custom files
 cp -a "$recipes/." "$repo/packages/netdata" package/custom/
+python3 "$repo/scripts/prepare-openclash.py" package/custom/luci-app-openclash
 "$repo/scripts/prepare-technitium-luci.sh" package/custom
+python3 "$repo/scripts/prepare-dns-service-hook.py" adguardhome feeds/packages/net/adguardhome
 cp -a "$repo/sources/full/files/." files/
 cp -a "$repo/image-files/network-ui/usr" "$repo/image-files/network-ui/www" files/
 python3 "$repo/scripts/build-metadata.py" generate files/usr/share/prowrt/build.json
@@ -194,13 +196,15 @@ old["luci-i18n-netdata-zh-cn"] = "0.1"
 old["px5g-mbedtls"] = "11"
 old["openssl-util"] = "3.5.9-r1"
 old["libopenssl-conf"] = "3.5.9-r1"
-old["luci-app-openclash"] = "0.48.002-r2"
+old["luci-app-openclash"] = "0.48.002-r3"
+old["ruby-json"] = old["ruby"]
+old["adguardhome"] = "0.107.79-r2"
 for name in ("docker", "dockerd", "docker-compose", "containerd", "runc", "tini",
              "luci-app-dockerman", "luci-i18n-dockerman-zh-cn"):
     old.pop(name, None)
     if name in new:
         raise SystemExit(f"Unexpected Docker package: {name}")
-for name, version in {"technitium": "15.6.2-r2", "luci-app-technitium": "1.1.0-r1",
+for name, version in {"technitium": "15.6.2-r3", "luci-app-technitium": "1.1.0-r1",
                       "luci-i18n-technitium-zh-cn": "1.0.0-r1"}.items():
     if name == "luci-i18n-technitium-zh-cn" and new.get(name):
         # LuCI gives translation packages their own source-derived version.

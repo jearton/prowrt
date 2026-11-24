@@ -1,0 +1,9 @@
+Cacheable calls:   40344 / 55769 (72.34%)
+  Hits:            40249 / 40344 (99.76%)
+    Direct:        39976 / 40249 (99.32%)
+    Preprocessed:    273 / 40249 ( 0.68%)
+  Misses:             95 / 40344 ( 0.24%)
+Uncacheable calls: 15425 / 55769 (27.66%)
+Local storage:
+  Hits:            40249 / 40344 (99.76%)
+  Misses:             95 / 40344 ( 0.24%)

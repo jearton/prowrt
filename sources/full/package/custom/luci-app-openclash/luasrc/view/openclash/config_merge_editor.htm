@@ -35,7 +35,21 @@
 var myEditor_use = document.getElementById("cbid.table.1.user");
 var myEditor_def = document.getElementById("cbid.table.1.default");
 
+// Install the guard before calling any externally loaded editor helper.
+// A missing common.js must not submit a large plain field or restart with
+// silently unsaved edits.
+if (myEditor_use && myEditor_use.form) {
+	myEditor_use.form.addEventListener('submit', function(event) {
+		if (!myEditor_use.form.ocStreamEditor) {
+			event.preventDefault();
+			alert('<%:Configuration upload support did not load. Your edits are preserved. Reload this page before applying.%>');
+		}
+	}, true);
+}
+
 if (myEditor_use && myEditor_def) {
+	myEditor_def.removeAttribute('name');
+	ocStreamEditorOnSubmit(myEditor_use);
 	var myEditor_div_use = document.getElementById("cbi-table-1-user");
 	var myEditor_div_def = document.getElementById("cbi-table-1-default");
 
@@ -54,7 +68,6 @@ if (myEditor_use && myEditor_def) {
 	ocQueueEditor(myEditor_div_use, function() {
 		config_merge_editor(myEditor_use, myEditor_def, myEditor_div_use, myEditor_div_def, true, false, 'auto', '700px');
 	});
-	ocStreamEditorOnSubmit(myEditor_use);
 }
 })();
 

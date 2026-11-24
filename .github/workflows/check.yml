@@ -55,13 +55,28 @@ jobs:
       - name: Check firmware identity and cache boundaries
         run: |
           sudo apt-get update -q
-          sudo apt-get install -qy --no-install-recommends squashfs-tools
+          sudo apt-get install -qy --no-install-recommends squashfs-tools ruby
           python3 -m unittest discover -s tests -p 'test_build_support.py' -v
           node tests/check-prowrt-status.cjs
           sh -n sources/full/files/usr/bin/prowrt-version
           python3 scripts/build-metadata.py generate "$RUNNER_TEMP/build.json"
           python3 scripts/build-metadata.py verify "$RUNNER_TEMP/build.json"
           test -x sources/full/files/usr/bin/prowrt-version
+      - name: Check DNS preset and resolver lifecycle integration
+        run: |
+          ruby tests/check-openclash-dns.rb
+          python3 -m unittest discover -s tests -p 'test_dns_service_hook.py' -v
+          python3 -m unittest discover -s tests -p 'test_openclash_patch.py' -v
+          python3 scripts/prepare-openclash.py sources/full/package/custom/luci-app-openclash
+          ruby -c sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_native_check.rb
+          ruby -c sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_firewall.rb
+          ruby -c sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_link.rb
+      - name: Check large OpenClash editor forms in Chrome
+        run: |
+          npm install --prefix "$RUNNER_TEMP/editor-browser" --ignore-scripts --no-package-lock --no-audit --no-fund playwright@1.62.1
+          export CHROME_EXECUTABLE="$(command -v google-chrome)"
+          export PLAYWRIGHT_MODULE="$RUNNER_TEMP/editor-browser/node_modules/playwright"
+          node scripts/check-openclash-editor.cjs
       - name: Check independently pinned OpenClash dashboards
         run: |
           python3 -m unittest discover -s tests -p 'test_openclash_ui.py' -v
@@ -72,7 +87,7 @@ jobs:
           scripts/prepare-technitium-luci.sh "$packages"
           sh -n "$packages/technitium/files/run" "$packages/technitium/files/technitium.init"
           node --check "$packages/luci-app-technitium/htdocs/luci-static/resources/view/technitium/status.js"
-          grep -Fx 'PKG_RELEASE:=2' "$packages/technitium/Makefile"
+          grep -Fx 'PKG_RELEASE:=3' "$packages/technitium/Makefile"
           grep -Fx 'PKG_VERSION:=1.1.0' "$packages/luci-app-technitium/Makefile"
       - name: Check Technitium loopback ports
         run: |

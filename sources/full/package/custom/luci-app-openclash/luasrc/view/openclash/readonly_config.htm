@@ -1,0 +1,4 @@
+<%+cbi/valueheader%>
+<!-- No name: runtime YAML is displayed and compared, never submitted. -->
+<textarea id="<%=self:cbid(section)%>" class="cbi-input-textarea" rows="<%=self.rows or 40%>" wrap="off" readonly="readonly"><%=pcdata(self:cfgvalue(section) or "")%></textarea>
+<%+cbi/valuefooter%>

@@ -47,6 +47,21 @@ OPENWRT_METRICS_DIR=/srv/prowrt-metrics/run-001 \
 
 配置预检工作流在 Linux 上执行实际来源准备、自定义配方安装和 `make defconfig`，检查必需包和外部缓存路径后停止，不生成固件。`feeds uninstall` 会刷新已存在的 `.config`，因此权威 profile 只能在全部自定义配方安装后写入；缓存目录的预先准备不会提前创建 `.config`。此检查用于在 PR 阶段发现选择丢失，不能替代后续完整编译或 VM 验收。
 
+### 同一源码的冷、热构建结果（2026-11-24）
+
+两次均构建 `bdb92fcdbf5fa834cf061ce0f70fa9d742c65b47`，使用 Ubuntu 24.04 的 4 CPU runner，完整编译、清单／ABI 检查和隔离首次启动均通过。
+
+| 指标 | [冷构建 45199745484](https://github.com/jearton/prowrt/actions/runs/45199745484) | [热构建 45217015340](https://github.com/jearton/prowrt/actions/runs/45217015340) |
+| --- | --- | --- |
+| 恢复已有缓存 | 无 | 恢复前次下载与编译缓存 |
+| 编译阶段 | 78 分 06 秒 | 50 分 07 秒 |
+| 完整 build job，包含缓存和上传步骤 | 88 分 25 秒 | 62 分 16 秒 |
+| 本轮可缓存编译命中 | 4,509 / 40,344（11.18%） | 40,249 / 40,344（99.76%） |
+
+本次对照中，编译阶段缩短 35.8%，完整 job 缩短 29.6%。冷构建的命中来自同一轮内部复用，不代表恢复过历史缓存。热构建仍有 15,425 次不可缓存调用，工具链准备、链接、打包、验证和上传也继续耗时；缓存命中率不能直接当作总耗时降幅。两次不是同一物理 runner，此结果是实际记录，不是每次构建的耗时保证。
+
+原始阶段记录和本轮 ccache 统计见 [冷构建](evidence/build-cache-20261124/cold.json)、[热构建](evidence/build-cache-20261124/warm.json)、[冷 ccache](evidence/build-cache-20261124/cold-ccache.txt)、[热 ccache](evidence/build-cache-20261124/warm-ccache.txt)。后续面板版本变更的构建不混入这组同源码对比。
+
 ## 发布检查与回滚
 
 新固件包包含镜像、APK 清单、`build.json` 和 `SHA256SUMS`。`build.json` 与镜像内记录逐字段一致，三个数据文件均列入校验和；固件不能在内部包含自身的最终 SHA-256，最终摘要保存在外部 `SHA256SUMS`。

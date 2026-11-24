@@ -13,6 +13,8 @@ on:
       - 'VERSION'
       - 'scripts/check-rootfs-permissions.py'
       - 'scripts/prepare-technitium-luci.sh'
+      - 'scripts/prepare-dns-service-hook.py'
+      - 'scripts/prepare-openclash.py'
       - '*.lock.json'
       - 'sources/full/**'
       - 'profiles/network-ui.config'

@@ -1036,14 +1036,23 @@ function ocStreamEditorOnSubmit(id) {
     input.style.display = 'none';
     form.appendChild(input);
 
-    form.addEventListener('submit', function() {
+    form.addEventListener('submit', function(event) {
+        var wasDisabled = id.disabled;
         try {
             var dt = new DataTransfer();
             dt.items.add(new File([id.value], 'content.yaml', { type: 'text/plain' }));
             input.files = dt.files;
-            id.value = OC_EDITOR_STREAM_MARKER;
+            if (!input.files || input.files.length !== 1) throw new Error('File transfer unavailable');
+            // The file part carries the source. Keep the editor's value intact
+            // and omit its ordinary field, including when another listener
+            // cancels submission or the browser remains on this page.
+            id.disabled = true;
+            setTimeout(function() { id.disabled = wasDisabled; }, 0);
         } catch (e) {
-            input.parentNode.removeChild(input);
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            id.disabled = wasDisabled;
+            alert('<%:Unable to stream the configuration. Your edits are preserved. Please use a supported browser or upload the YAML file.%>');
         }
     });
 }

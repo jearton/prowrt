@@ -22,3 +22,4 @@ for package in technitium luci-app-technitium; do
     test ! -e "$destination/$package"
     cp -a "$work/$package" "$destination/"
 done
+python3 "$repo/scripts/prepare-dns-service-hook.py" technitium "$destination/technitium"

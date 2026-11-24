@@ -1,0 +1,7 @@
+{
+  "integration_version": 1,
+  "package": "luci-app-openclash",
+  "version": "0.48.002-r3",
+  "upgrade_channel": "https://github.com/jearton/prowrt/releases",
+  "features": ["native-dns-forwarding-modes", "large-yaml-streaming", "native-dns-preset"]
+}
