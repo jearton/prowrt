@@ -1,0 +1,10 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+case "$ACTION" in ifup|ifupdate|ifdown) ;; *) exit 0 ;; esac
+case "$(uci -q get openclash.config.enable_redirect_dns)" in 3|4) ;; *) exit 0 ;; esac
+# Keep automatic endpoint exemptions current after address changes. Reuse the
+# native interface event; no additional daemon, timer or forced core restart.
+[ -f /etc/openclash/dns-link/activated ] || exit 0
+command -v ruby >/dev/null 2>&1 || exit 0
+ruby /usr/share/openclash/dns_firewall.rb apply >/dev/null 2>&1 ||
+    logger -t openclash-dns-link 'DNS endpoint update failed; check local listener and source zones'

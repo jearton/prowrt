@@ -5437,3 +5437,57 @@ msgstr "恢复默认配置"
 
 msgid "Start Test"
 msgstr "开始测试"
+
+msgid "Technitium Forwarding"
+msgstr "使用 Technitium 转发"
+
+msgid "AdGuard Home Forwarding"
+msgstr "使用 AdGuard Home 转发"
+
+msgid "Technitium/AdGuard modes forward through local port 53, enforce the service upstream as Mihomo, and preserve it when OpenClash stops. Select DNS splitting and its proxy group in the native Overwrite DNS settings."
+msgstr "Technitium / AdGuard 模式将 DNS 交给本机 53 端口，并在启动时校正服务上游为 Mihomo；停止 OpenClash 时保留上游与 DNS 规则。DNS 分流及代理组在原生覆写 DNS 设置中配置。"
+
+msgid "DNS source firewall zones"
+msgstr "DNS 来源防火墙区域"
+
+msgid "Choose all internal source zones, including internal uplinks. DNS query access and TCP/UDP 53 interception are configured only for these zones; management ports are unchanged."
+msgstr "选择所有内网来源区域，可以包含内网上联。自动处理这些区域的 DNS 查询放行及 TCP/UDP 53 接管；不会扩大管理端口权限。"
+
+msgid "Optional DNS source subnets"
+msgstr "DNS 来源网段（可选）"
+
+msgid "Leave empty to allow every source in the selected internal zones. No fixed source IP is required."
+msgstr "留空允许所选内网区域的全部来源，不要求固定来源 IP。"
+
+msgid "Local DNS IPv4 addresses"
+msgstr "本机 DNS IPv4 入口地址"
+
+msgid "Leave empty to preserve all local IPv4 DNS endpoints. Direct queries to these addresses keep their original destination; other TCP/UDP 53 requests are redirected to local port 53."
+msgstr "留空自动保留本机全部 IPv4 DNS 入口。直接查询这些地址时保持原目标；其他目的的 TCP/UDP 53 请求转到本机 53。"
+
+msgid "Local DNS management API port"
+msgstr "本机 DNS 管理 API 端口"
+
+msgid "Connects only to 127.0.0.1. Leave empty for the selected service's default port. It does not change the service's listening port."
+msgstr "仅连接 127.0.0.1。留空使用所选服务默认管理端口；不修改实际监听端口。"
+
+msgid "Technitium API token"
+msgstr "Technitium API 令牌"
+
+msgid "AdGuard Home username"
+msgstr "AdGuard Home 用户名"
+
+msgid "AdGuard Home password"
+msgstr "AdGuard Home 密码"
+
+msgid "Stored in a root-only credential file. Leave empty to retain the saved value. Technitium can also use its existing initial setup-password file if the initial administrator password is still valid."
+msgstr "凭证保存在仅 root 可读的文件中，留空保留已有值。Technitium 初始管理员密码仍有效时可使用已有初始密码文件；否则请填写有设置读写权限的 API 令牌。"
+
+msgid "DNS linkage last applied state"
+msgstr "DNS 联动最近应用状态"
+
+msgid "Unable to stream the configuration. Your edits are preserved. Please use a supported browser or upload the YAML file."
+msgstr "无法流式提交配置，编辑内容已保留。请使用支持的浏览器或上传 YAML 文件。"
+
+msgid "Configuration upload support did not load. Your edits are preserved. Reload this page before applying."
+msgstr "配置上传组件未加载，编辑内容已保留。请重新加载页面后再应用。"

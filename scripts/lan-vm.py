@@ -271,7 +271,11 @@ if __name__ == "__main__":
         guest.run("test -r /rom/usr/share/prowrt/build.json\n"
                   "test -r /www/luci-static/resources/view/status/include/05_prowrt.js\n"
                   "test -r /usr/share/rpcd/acl.d/prowrt-version.json")
-        print("Booted image reports the expected ProWrt version and source commit", flush=True)
+        integration = json.loads(guest.run("cat /usr/share/prowrt/openclash-integration.json"))
+        assert integration['version'] == '0.48.002-r3'
+        guest.run("grep -Fxq 'luci-app-openclash=" + integration['version'] + "' /etc/apk/world")
+        assert guest.run("uci -q get openclash.config.enable_redirect_dns").strip() == '3'
+        print("Booted image reports expected ProWrt identity, compatible OpenClash marker and APK version pin", flush=True)
     elif action == "forced-dns":
         forced_dns(guest)
     elif action == "dns-defaults":

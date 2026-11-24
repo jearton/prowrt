@@ -1,0 +1,62 @@
+{
+  "started_at": "2026-11-23T16:35:06.859856+00:00",
+  "host": {
+    "system": "Linux",
+    "architecture": "x86_64",
+    "cpu_count": 4,
+    "disk_free_bytes": 113272651776,
+    "runner_image": "20261116.133.1"
+  },
+  "cache": {
+    "PROWRT_DL_CACHE_MATCH": "prowrt-downloads-v1-Linux-X64-45199745484-1",
+    "PROWRT_CCACHE_MATCH": "prowrt-v1-Linux-X64-gcc13.3.0-09fc1e61232f0b71549b33b9-45199745484-1",
+    "PROWRT_CACHE_KEY": "prowrt-v1-Linux-X64-gcc13.3.0-09fc1e61232f0b71549b33b9"
+  },
+  "stages": [
+    {
+      "name": "host-preparation",
+      "seconds": 350,
+      "status": "success"
+    },
+    {
+      "name": "source-and-feeds",
+      "seconds": 50,
+      "status": "success"
+    },
+    {
+      "name": "custom-packages-and-overlay",
+      "seconds": 44,
+      "status": "success"
+    },
+    {
+      "name": "configuration",
+      "seconds": 10,
+      "status": "success"
+    },
+    {
+      "name": "downloads",
+      "seconds": 83,
+      "status": "success"
+    },
+    {
+      "name": "compilation",
+      "seconds": 3007,
+      "status": "success"
+    },
+    {
+      "name": "verification-and-export",
+      "seconds": 8,
+      "status": "success"
+    },
+    {
+      "name": "isolated-boot",
+      "seconds": 74,
+      "status": "success"
+    }
+  ],
+  "run_id": 45217015340,
+  "source_commit": "bdb92fcdbf5fa834cf061ce0f70fa9d742c65b47",
+  "url": "https://github.com/jearton/prowrt/actions/runs/45217015340",
+  "conclusion": "success",
+  "job_seconds": 3736
+}

@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
 PKG_VERSION:=0.48.002
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
@@ -62,7 +62,7 @@ define Package/$(PKG_NAME)
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
 	DEPENDS:=+dnsmasq-full +bash +curl +ca-bundle +ip-full \
-	+ruby +ruby-yaml +kmod-tun +unzip
+	+ruby +ruby-yaml +ruby-json +kmod-tun +unzip
 	MAINTAINER:=vernesong
 endef
 
@@ -75,7 +75,8 @@ define Build/Prepare
 	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)
 	$(UI_PREPARE) install --downloads "$(DL_DIR)" --root "$(PKG_BUILD_DIR)/root"
 	# Replace the @OPENCLASH_VERSION@ token with the package version (browser asset cache keys).
-	sed -i 's|@OPENCLASH_VERSION@|$(PKG_VERSION)|g' $(PKG_BUILD_DIR)/luasrc/openclash.lua $(PKG_BUILD_DIR)/luasrc/view/openclash/*.htm
+	sed -i 's|@OPENCLASH_VERSION@|$(PKG_VERSION)|g' $(PKG_BUILD_DIR)/luasrc/openclash.lua
+	sed -i 's|@OPENCLASH_VERSION@|$(PKG_VERSION)-r$(PKG_RELEASE)|g' $(PKG_BUILD_DIR)/luasrc/view/openclash/*.htm
 	$(foreach po,$(wildcard ${CURDIR}/po/zh-cn/*.po), \
 		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/openclash

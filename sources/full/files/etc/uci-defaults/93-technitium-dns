@@ -4,7 +4,6 @@ set -e
 
 uci batch <<'UCI'
 set dhcp.@dnsmasq[0].port=5353
-set openclash.config.enable_redirect_dns=0
 set firewall.technitium_aux=rule
 set firewall.technitium_aux.name='Reject internal resolver ports'
 set firewall.technitium_aux.src='*'

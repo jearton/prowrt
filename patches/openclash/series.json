@@ -1,0 +1,35 @@
+{
+  "upstream_version": "0.48.002",
+  "package_version": "0.48.002-r3",
+  "base_commit": "8751608ad67ebae786e01a8848469d4d1cbc8948",
+  "patch": "0001-prowrt-integration.patch",
+  "patch_sha256": "d9029626f2d3f3fb7642221927485960aa9ad17056b076b370b9349f4ef2356a",
+  "files": {
+    "Makefile": "57b954273bda16fa83bfbd2d730a2073fe70560377c1749d302dfd8e79f69cf4",
+    "luasrc/model/cbi/openclash/config.lua": "33c87d80a3d7e5e2c7708d70486e77385600c3f82e4d18a4595bbee7ce51fd99",
+    "luasrc/model/cbi/openclash/settings.lua": "3e7f7d5fa782c443fccd489245e500e9a5459cc3a7c93e669be8601a2bd09b05",
+    "luasrc/openclash_dns.lua": "6ba651726a2ad43d8ff6972f4f5a367cd1a368d3666c54bbf5866b48885833ad",
+    "luasrc/view/openclash/config_merge_editor.htm": "6ea3a561ef2d181c9d3246a1c8d52225e5e48d048f36ff55c708b2c00d6af396",
+    "luasrc/view/openclash/readonly_config.htm": "1b3b0d6584547bea2b02aa4059a067b79d095a10b12fd626cc30c34bb52080fd",
+    "po/zh-cn/openclash.zh-cn.po": "ae6548922431e4de5a1c65de104c56bdad76e6535887a5f5613e3b232376b9a4",
+    "root/etc/config/openclash": "178da518203f81308f16951fb094f75772bec5c5472fc1e3afec840127a0849d",
+    "root/etc/hotplug.d/iface/95-prowrt-dns-forwarding": "a869f60bf49321b1455f8eab637f569a269fecf26e382410634d7c2ebf07319a",
+    "root/etc/init.d/openclash": "2028e0ffd29522d44cbcf86c099cbcd37ab58d05e1cd16b674cdc5563a50baa6",
+    "root/etc/openclash/custom/openclash_custom_domain_dns_policy.list": "bc987b9bca3ac91487bfa14330d529e86e3871555feaaea597ee3f2405f5e59d",
+    "root/etc/openclash/custom/openclash_custom_overwrite.sh": "897f154ae3f12a375bb2e378a6fe2eb1a8aef005ab89525431ad255a9922e679",
+    "root/etc/uci-defaults/99-prowrt-openclash-pin": "075df1e28f6cb1b847c3df4c9603dc9e63f6663fe0b527a5aa647e180437ee41",
+    "root/lib/upgrade/keep.d/openclash-dns-link": "59fd226de30c361130193d8fa248e1abcdfbb643fe17603e9861fd31edfddce4",
+    "root/usr/share/openclash/dns_firewall.rb": "5e7d4cbbd85d797531e1fb6bbacaf6245d627e860477cba485c5c07e01abd24f",
+    "root/usr/share/openclash/dns_link.rb": "27c201ca514354396620977e91ed2ecb831cf5d4b40fe480ba6e91c5c6b2b063",
+    "root/usr/share/openclash/dns_native_check.rb": "b5c6c545317e0cfddf4114647ec3fc86df92af222f82e0e10fae7fd22d329e1b",
+    "root/usr/share/openclash/openclash_update.sh": "41ed15428d50e726c59c5755d4e65d45531bdb72d5f2a0d8dbe7d30e532d4f6f",
+    "root/usr/share/openclash/openclash_watchdog.sh": "4f1dab693f511725c340d992bb0b8ed3c6bd30c8ca05324e5935116addeef7d9",
+    "root/usr/share/prowrt/openclash-integration.json": "f1bda98c3491ffd13b63105ef327d70249e42517871d8615f097bccd8159be16",
+    "root/www/luci-static/resources/openclash/js/common.js": "46a8ac43fa5b742644e251234edc043be07655fedf2e8255071486e70ee21741"
+  },
+  "compatibility_files": {
+    "luasrc/openclash.lua": "4eaf68ee3c2177ae221054cf993d9d8bb9904057eb3c5f7fb331b0e7171e8428",
+    "root/usr/share/openclash/uci.sh": "5808e5b56f742362b939b2ad4986c1b92ff529afaf5c0c3495d4ce32e8966852",
+    "root/usr/share/openclash/log.sh": "b59f3a673c0922c666d00d94eb7962c86ee1138ad22e47538facc6cdf885b5c2"
+  }
+}

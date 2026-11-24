@@ -4,6 +4,13 @@
 . /usr/share/openclash/openclash_curl.sh
 . /usr/share/openclash/openclash_ps.sh
 
+# The upstream one-click updater installs an unmodified package and would
+# overwrite ProWrt's forwarding modes. Core/dashboard updaters are separate.
+if [ -f /usr/share/prowrt/openclash-integration.json ]; then
+   LOG_ERROR "ProWrt integration: install compatible ProWrt firmware from https://github.com/jearton/prowrt/releases; upstream one-click plugin updates are blocked to preserve the patch"
+   exit 1
+fi
+
 set_lock() {
    exec 878>"/tmp/lock/openclash_update.lock" 2>/dev/null
    flock -x 878 2>/dev/null

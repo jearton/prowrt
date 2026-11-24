@@ -141,6 +141,10 @@ o.default = 1
 o:value("0", translate("Disable"))
 o:value("1", translate("Dnsmasq Redirect"))
 o:value("2", translate("Firewall Redirect"))
+o:value("3", translate("Technitium Forwarding"))
+o:value("4", translate("AdGuard Home Forwarding"))
+o.description = translate("Technitium/AdGuard modes forward through local port 53, enforce the service upstream as Mihomo, and preserve it when OpenClash stops. Select DNS splitting and its proxy group in the native Overwrite DNS settings.")
+require('luci.openclash_dns').add_options(s)
 
 o = s:taboption("dns", DummyValue, "flush_dns_cache", translate("Flush DNS"))
 o.template = "openclash/flush_dns_cache"

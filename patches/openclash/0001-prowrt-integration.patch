@@ -1,0 +1,1264 @@
+diff --git a/sources/full/package/custom/luci-app-openclash/Makefile b/sources/full/package/custom/luci-app-openclash/Makefile
+index 9ab9acf..ae7b7aa 100644
+--- a/sources/full/package/custom/luci-app-openclash/Makefile
++++ b/sources/full/package/custom/luci-app-openclash/Makefile
+@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=luci-app-openclash
+ PKG_VERSION:=0.48.002
+-PKG_RELEASE:=2
++PKG_RELEASE:=3
+ PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
+ 
+ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
+@@ -62,7 +62,7 @@ define Package/$(PKG_NAME)
+ 	TITLE:=LuCI support for clash
+ 	PKGARCH:=all
+ 	DEPENDS:=+dnsmasq-full +bash +curl +ca-bundle +ip-full \
+-	+ruby +ruby-yaml +kmod-tun +unzip
++	+ruby +ruby-yaml +ruby-json +kmod-tun +unzip
+ 	MAINTAINER:=vernesong
+ endef
+ 
+@@ -75,7 +75,8 @@ define Build/Prepare
+ 	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)
+ 	$(UI_PREPARE) install --downloads "$(DL_DIR)" --root "$(PKG_BUILD_DIR)/root"
+ 	# Replace the @OPENCLASH_VERSION@ token with the package version (browser asset cache keys).
+-	sed -i 's|@OPENCLASH_VERSION@|$(PKG_VERSION)|g' $(PKG_BUILD_DIR)/luasrc/openclash.lua $(PKG_BUILD_DIR)/luasrc/view/openclash/*.htm
++	sed -i 's|@OPENCLASH_VERSION@|$(PKG_VERSION)|g' $(PKG_BUILD_DIR)/luasrc/openclash.lua
++	sed -i 's|@OPENCLASH_VERSION@|$(PKG_VERSION)-r$(PKG_RELEASE)|g' $(PKG_BUILD_DIR)/luasrc/view/openclash/*.htm
+ 	$(foreach po,$(wildcard ${CURDIR}/po/zh-cn/*.po), \
+ 		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
+ 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/openclash
+diff --git a/sources/full/package/custom/luci-app-openclash/luasrc/model/cbi/openclash/config.lua b/sources/full/package/custom/luci-app-openclash/luasrc/model/cbi/openclash/config.lua
+index a41f8eb..d46493e 100644
+--- a/sources/full/package/custom/luci-app-openclash/luasrc/model/cbi/openclash/config.lua
++++ b/sources/full/package/custom/luci-app-openclash/luasrc/model/cbi/openclash/config.lua
+@@ -397,6 +397,7 @@ end
+ end
+ 
+ def = s:option(TextValue, "default")
++def.template = "openclash/readonly_config"
+ if fs.isfile(sconf) then
+ 	---def.description = align_mid..translate("Config File Edited By OpenClash For Running")..align_mid_off
+ else
+diff --git a/sources/full/package/custom/luci-app-openclash/luasrc/model/cbi/openclash/settings.lua b/sources/full/package/custom/luci-app-openclash/luasrc/model/cbi/openclash/settings.lua
+index 047b497..aa3d146 100644
+--- a/sources/full/package/custom/luci-app-openclash/luasrc/model/cbi/openclash/settings.lua
++++ b/sources/full/package/custom/luci-app-openclash/luasrc/model/cbi/openclash/settings.lua
+@@ -141,6 +141,10 @@ o.default = 1
+ o:value("0", translate("Disable"))
+ o:value("1", translate("Dnsmasq Redirect"))
+ o:value("2", translate("Firewall Redirect"))
++o:value("3", translate("Technitium Forwarding"))
++o:value("4", translate("AdGuard Home Forwarding"))
++o.description = translate("Technitium/AdGuard modes forward through local port 53, enforce the service upstream as Mihomo, and preserve it when OpenClash stops. Select DNS splitting and its proxy group in the native Overwrite DNS settings.")
++require('luci.openclash_dns').add_options(s)
+ 
+ o = s:taboption("dns", DummyValue, "flush_dns_cache", translate("Flush DNS"))
+ o.template = "openclash/flush_dns_cache"
+diff --git a/sources/full/package/custom/luci-app-openclash/luasrc/openclash_dns.lua b/sources/full/package/custom/luci-app-openclash/luasrc/openclash_dns.lua
+new file mode 100644
+index 0000000..5c540f6
+--- /dev/null
++++ b/sources/full/package/custom/luci-app-openclash/luasrc/openclash_dns.lua
+@@ -0,0 +1,79 @@
++local M = {}
++local fs = require 'nixio.fs'
++local sys = require 'luci.sys'
++local util = require 'luci.util'
++local json = require 'luci.jsonc'
++local uci = require('luci.model.uci').cursor()
++local cbi = require 'luci.cbi'
++local Value, DynamicList, DummyValue = cbi.Value, cbi.DynamicList, cbi.DummyValue
++local translate = require('luci.i18n').translate
++local directory = '/etc/openclash/dns-link'
++
++local function credentials()
++    return json.parse(fs.readfile(directory .. '/credentials.json') or '{}') or {}
++end
++
++local function save_credential(key, value)
++    if not value or value == '' then return end
++    fs.mkdirr(directory)
++    fs.chmod(directory, 448) -- 0700, before writing a temporary file
++    local data = credentials()
++    data[key] = value
++    local path = directory .. '/credentials.json.tmp'
++    if not fs.writefile(path, json.stringify(data)) then error('Unable to save DNS credentials') end
++    fs.chmod(path, 384) -- 0600
++    if not fs.rename(path, directory .. '/credentials.json') then error('Unable to save DNS credentials') end
++end
++
++function M.add_options(s)
++    local function forward_option(kind, name, title, mode)
++        local option = s:taboption('dns', kind, name, translate(title))
++        option:depends('enable_redirect_dns', mode or '3')
++        if not mode then option:depends('enable_redirect_dns', '4') end
++        return option
++    end
++    local o = forward_option(DynamicList, 'dns_link_zones', 'DNS source firewall zones')
++    o.datatype = 'uciname'
++    o.default = 'lan'
++    o.rmempty = false
++    uci:foreach('firewall', 'zone', function(zone) if zone.name then o:value(zone.name) end end)
++    o.description = translate('Choose all internal source zones, including internal uplinks. DNS query access and TCP/UDP 53 interception are configured only for these zones; management ports are unchanged.')
++
++    o = forward_option(DynamicList, 'dns_link_sources', 'Optional DNS source subnets')
++    o.datatype = 'cidr4'
++    o.description = translate('Leave empty to allow every source in the selected internal zones. No fixed source IP is required.')
++
++    o = forward_option(DynamicList, 'dns_link_endpoints', 'Local DNS IPv4 addresses')
++    o.datatype = 'ip4addr'
++    o.description = translate('Leave empty to preserve all local IPv4 DNS endpoints. Direct queries to these addresses keep their original destination; other TCP/UDP 53 requests are redirected to local port 53.')
++
++    o = forward_option(Value, 'dns_link_api_port', 'Local DNS management API port')
++    o.datatype = 'port'
++    o.placeholder = 'Technitium: 5380 / AdGuard Home: 3000'
++    o.description = translate('Connects only to 127.0.0.1. Leave empty for the selected service\'s default port. It does not change the service\'s listening port.')
++
++    for _, item in ipairs({
++        {'dns_link_token', 'technitium_token', '3', 'Technitium API token', true},
++        {'dns_link_user', 'adguard_user', '4', 'AdGuard Home username', false},
++        {'dns_link_password', 'adguard_password', '4', 'AdGuard Home password', true}
++    }) do
++        local key, masked = item[2], item[5]
++        o = forward_option(Value, item[1], item[4], item[3])
++        o.password = masked
++        o.rmempty = true
++        o.description = translate('Stored in a root-only credential file. Leave empty to retain the saved value. Technitium can also use its existing initial setup-password file if the initial administrator password is still valid.')
++        function o.cfgvalue(self, section)
++            return masked and '' or credentials()[key]
++        end
++        function o.write(self, section, value) save_credential(key, value) end
++        function o.remove() end
++    end
++
++    o = s:taboption('dns', DummyValue, '_dns_link_status', translate('DNS linkage last applied state'))
++    function o.cfgvalue()
++        local state = json.parse(fs.readfile('/var/run/openclash-dns-link.json') or '{}') or {}
++        return state.error or ((state.mode or 'not-applied') .. ' ' .. (state.service or '') .. ' ' .. (state.upstream or ''))
++    end
++end
++
++return M
+diff --git a/sources/full/package/custom/luci-app-openclash/luasrc/view/openclash/config_merge_editor.htm b/sources/full/package/custom/luci-app-openclash/luasrc/view/openclash/config_merge_editor.htm
+index 6321267..c8894a8 100644
+--- a/sources/full/package/custom/luci-app-openclash/luasrc/view/openclash/config_merge_editor.htm
++++ b/sources/full/package/custom/luci-app-openclash/luasrc/view/openclash/config_merge_editor.htm
+@@ -35,7 +35,21 @@
+ var myEditor_use = document.getElementById("cbid.table.1.user");
+ var myEditor_def = document.getElementById("cbid.table.1.default");
+ 
++// Install the guard before calling any externally loaded editor helper.
++// A missing common.js must not submit a large plain field or restart with
++// silently unsaved edits.
++if (myEditor_use && myEditor_use.form) {
++	myEditor_use.form.addEventListener('submit', function(event) {
++		if (!myEditor_use.form.ocStreamEditor) {
++			event.preventDefault();
++			alert('<%:Configuration upload support did not load. Your edits are preserved. Reload this page before applying.%>');
++		}
++	}, true);
++}
++
+ if (myEditor_use && myEditor_def) {
++	myEditor_def.removeAttribute('name');
++	ocStreamEditorOnSubmit(myEditor_use);
+ 	var myEditor_div_use = document.getElementById("cbi-table-1-user");
+ 	var myEditor_div_def = document.getElementById("cbi-table-1-default");
+ 
+@@ -54,7 +68,6 @@ if (myEditor_use && myEditor_def) {
+ 	ocQueueEditor(myEditor_div_use, function() {
+ 		config_merge_editor(myEditor_use, myEditor_def, myEditor_div_use, myEditor_div_def, true, false, 'auto', '700px');
+ 	});
+-	ocStreamEditorOnSubmit(myEditor_use);
+ }
+ })();
+ 
+diff --git a/sources/full/package/custom/luci-app-openclash/luasrc/view/openclash/readonly_config.htm b/sources/full/package/custom/luci-app-openclash/luasrc/view/openclash/readonly_config.htm
+new file mode 100644
+index 0000000..939f2e7
+--- /dev/null
++++ b/sources/full/package/custom/luci-app-openclash/luasrc/view/openclash/readonly_config.htm
+@@ -0,0 +1,4 @@
++<%+cbi/valueheader%>
++<!-- No name: runtime YAML is displayed and compared, never submitted. -->
++<textarea id="<%=self:cbid(section)%>" class="cbi-input-textarea" rows="<%=self.rows or 40%>" wrap="off" readonly="readonly"><%=pcdata(self:cfgvalue(section) or "")%></textarea>
++<%+cbi/valuefooter%>
+diff --git a/sources/full/package/custom/luci-app-openclash/po/zh-cn/openclash.zh-cn.po b/sources/full/package/custom/luci-app-openclash/po/zh-cn/openclash.zh-cn.po
+index be53f66..7acdb8b 100644
+--- a/sources/full/package/custom/luci-app-openclash/po/zh-cn/openclash.zh-cn.po
++++ b/sources/full/package/custom/luci-app-openclash/po/zh-cn/openclash.zh-cn.po
+@@ -5437,3 +5437,57 @@ msgstr "恢复默认配置"
+ 
+ msgid "Start Test"
+ msgstr "开始测试"
++
++msgid "Technitium Forwarding"
++msgstr "使用 Technitium 转发"
++
++msgid "AdGuard Home Forwarding"
++msgstr "使用 AdGuard Home 转发"
++
++msgid "Technitium/AdGuard modes forward through local port 53, enforce the service upstream as Mihomo, and preserve it when OpenClash stops. Select DNS splitting and its proxy group in the native Overwrite DNS settings."
++msgstr "Technitium / AdGuard 模式将 DNS 交给本机 53 端口，并在启动时校正服务上游为 Mihomo；停止 OpenClash 时保留上游与 DNS 规则。DNS 分流及代理组在原生覆写 DNS 设置中配置。"
++
++msgid "DNS source firewall zones"
++msgstr "DNS 来源防火墙区域"
++
++msgid "Choose all internal source zones, including internal uplinks. DNS query access and TCP/UDP 53 interception are configured only for these zones; management ports are unchanged."
++msgstr "选择所有内网来源区域，可以包含内网上联。自动处理这些区域的 DNS 查询放行及 TCP/UDP 53 接管；不会扩大管理端口权限。"
++
++msgid "Optional DNS source subnets"
++msgstr "DNS 来源网段（可选）"
++
++msgid "Leave empty to allow every source in the selected internal zones. No fixed source IP is required."
++msgstr "留空允许所选内网区域的全部来源，不要求固定来源 IP。"
++
++msgid "Local DNS IPv4 addresses"
++msgstr "本机 DNS IPv4 入口地址"
++
++msgid "Leave empty to preserve all local IPv4 DNS endpoints. Direct queries to these addresses keep their original destination; other TCP/UDP 53 requests are redirected to local port 53."
++msgstr "留空自动保留本机全部 IPv4 DNS 入口。直接查询这些地址时保持原目标；其他目的的 TCP/UDP 53 请求转到本机 53。"
++
++msgid "Local DNS management API port"
++msgstr "本机 DNS 管理 API 端口"
++
++msgid "Connects only to 127.0.0.1. Leave empty for the selected service's default port. It does not change the service's listening port."
++msgstr "仅连接 127.0.0.1。留空使用所选服务默认管理端口；不修改实际监听端口。"
++
++msgid "Technitium API token"
++msgstr "Technitium API 令牌"
++
++msgid "AdGuard Home username"
++msgstr "AdGuard Home 用户名"
++
++msgid "AdGuard Home password"
++msgstr "AdGuard Home 密码"
++
++msgid "Stored in a root-only credential file. Leave empty to retain the saved value. Technitium can also use its existing initial setup-password file if the initial administrator password is still valid."
++msgstr "凭证保存在仅 root 可读的文件中，留空保留已有值。Technitium 初始管理员密码仍有效时可使用已有初始密码文件；否则请填写有设置读写权限的 API 令牌。"
++
++msgid "DNS linkage last applied state"
++msgstr "DNS 联动最近应用状态"
++
++msgid "Unable to stream the configuration. Your edits are preserved. Please use a supported browser or upload the YAML file."
++msgstr "无法流式提交配置，编辑内容已保留。请使用支持的浏览器或上传 YAML 文件。"
++
++msgid "Configuration upload support did not load. Your edits are preserved. Reload this page before applying."
++msgstr "配置上传组件未加载，编辑内容已保留。请重新加载页面后再应用。"
+diff --git a/sources/full/package/custom/luci-app-openclash/root/etc/config/openclash b/sources/full/package/custom/luci-app-openclash/root/etc/config/openclash
+index 292c736..aadc624 100644
+--- a/sources/full/package/custom/luci-app-openclash/root/etc/config/openclash
++++ b/sources/full/package/custom/luci-app-openclash/root/etc/config/openclash
+@@ -18,8 +18,8 @@ config openclash 'config'
+ 	option ipv6_dns '0'
+ 	option enable_custom_clash_rules '0'
+ 	option core_version '0'
+-	option en_mode 'fake-ip'
+-	option enable_redirect_dns '1'
++	option en_mode 'redir-host'
++	option enable_redirect_dns '3'
+ 	option disable_masq_cache '1'
+ 	option log_level '0'
+ 	option proxy_mode 'rule'
+@@ -27,7 +27,7 @@ config openclash 'config'
+ 	option enable_udp_proxy '1'
+ 	option disable_udp_quic '1'
+ 	option lan_ac_mode '0'
+-	option operation_mode 'fake-ip'
++	option operation_mode 'redir-host'
+ 	option enable_rule_proxy '0'
+ 	option redirect_dns '0'
+ 	option cachesize_dns '0'
+@@ -65,227 +65,28 @@ config openclash 'config'
+ 	option chnr_custom_url 'https://ispip.clang.cn/all_cn.txt'
+ 	option chnr6_custom_url 'https://ispip.clang.cn/all_cn_ipv6.txt'
+ 
+-config dns_servers
+-	option type 'udp'
+-	option ip '114.114.114.114'
++config dns_servers 'prowrt_dns_google'
+ 	option enabled '1'
+-	option group 'default'
+-
+-config dns_servers
+-	option type 'udp'
+-	option ip '119.29.29.29'
+-	option enabled '1'
+-	option group 'default'
+-
+-config dns_servers
+ 	option group 'nameserver'
+-	option type 'udp'
+-	option ip '114.114.114.114'
+-	option enabled '1'
+-
+-config dns_servers
+-	option type 'udp'
+-	option ip '223.5.5.5'
+-	option enabled '1'
+-	option group 'default'
+-
+-config dns_servers
+-	option group 'nameserver'
+-	option type 'udp'
+-	option ip '119.29.29.29'
+-	option enabled '1'
+-
+-config dns_servers
+-	option group 'nameserver'
+-	option type 'udp'
+-	option ip '119.28.28.28'
+-	option enabled '0'
+-
+-config dns_servers
+-	option group 'nameserver'
+-	option type 'udp'
+-	option ip '223.5.5.5'
+-	option enabled '0'
+-
+-config dns_servers
+ 	option type 'https'
+-	option ip 'doh.pub/dns-query'
+-	option group 'nameserver'
+-	option enabled '1'
++	option ip '8.8.8.8/dns-query'
++	option specific_group 'Disable'
++	option skip_cert_verify '0'
+ 
+-config dns_servers
+-	option type 'https'
+-	option ip 'dns.alidns.com/dns-query'
+-	option group 'nameserver'
++config dns_servers 'prowrt_dns_cloudflare'
+ 	option enabled '1'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip '9.9.9.9'
+-	option type 'udp'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip '149.112.112.112'
+-	option type 'udp'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip '2620:fe::fe'
+-	option type 'udp'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip '2620:fe::9'
+-	option type 'udp'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip '8.8.8.8'
+-	option type 'udp'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip '8.8.4.4'
+-	option type 'udp'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip '2001:4860:4860::8888'
+-	option type 'udp'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip '2001:4860:4860::8844'
+-	option type 'udp'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip '2001:da8::666'
+-	option type 'udp'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'dns.quad9.net'
+-	option type 'tls'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'dns.google'
+-	option type 'tls'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip '1.1.1.1'
+-	option type 'tls'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'jp.tiar.app'
+-	option type 'tls'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'dot.tiar.app'
+-	option type 'tls'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'dns.quad9.net/dns-query'
+-	option type 'https'
+-
+-config dns_servers
+-	option enabled '1'
+-	option group 'fallback'
+-	option ip 'dns.google/dns-query'
+-	option type 'https'
+-
+-config dns_servers
+-	option enabled '1'
+-	option group 'fallback'
+-	option ip 'dns.cloudflare.com/dns-query'
++	option group 'nameserver'
+ 	option type 'https'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+ 	option ip '1.1.1.1/dns-query'
+-	option type 'https'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'public.dns.iij.jp/dns-query'
+-	option type 'https'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'jp.tiar.app/dns-query'
+-	option type 'https'
++	option specific_group 'Disable'
++	option skip_cert_verify '0'
+ 
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'jp.tiarap.org/dns-query'
+-	option type 'https'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option type 'https'
+-	option ip 'doh.dnslify.com/dns-query'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'dns.twnic.tw/dns-query'
+-	option type 'https'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'dns.oszx.co/dns-query'
+-	option type 'https'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'doh.applied-privacy.net/query'
+-	option type 'https'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'dnsforge.de/dns-query'
+-	option type 'https'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'doh.ffmuc.net/dns-query'
+-	option type 'https'
+-
+-config dns_servers
+-	option enabled '0'
+-	option group 'fallback'
+-	option ip 'doh.mullvad.net/dns-query'
++config dns_servers 'prowrt_dns_bootstrap'
++	option enabled '1'
++	option group 'default'
+ 	option type 'https'
++	option ip '223.5.5.5/dns-query'
++	option skip_cert_verify '0'
+ 
+ config config_overwrite
+ 	option name 'default'
+diff --git a/sources/full/package/custom/luci-app-openclash/root/etc/hotplug.d/iface/95-prowrt-dns-forwarding b/sources/full/package/custom/luci-app-openclash/root/etc/hotplug.d/iface/95-prowrt-dns-forwarding
+new file mode 100644
+index 0000000..498a5cb
+--- /dev/null
++++ b/sources/full/package/custom/luci-app-openclash/root/etc/hotplug.d/iface/95-prowrt-dns-forwarding
+@@ -0,0 +1,10 @@
++#!/bin/sh
++# SPDX-License-Identifier: GPL-3.0-or-later
++case "$ACTION" in ifup|ifupdate|ifdown) ;; *) exit 0 ;; esac
++case "$(uci -q get openclash.config.enable_redirect_dns)" in 3|4) ;; *) exit 0 ;; esac
++# Keep automatic endpoint exemptions current after address changes. Reuse the
++# native interface event; no additional daemon, timer or forced core restart.
++[ -f /etc/openclash/dns-link/activated ] || exit 0
++command -v ruby >/dev/null 2>&1 || exit 0
++ruby /usr/share/openclash/dns_firewall.rb apply >/dev/null 2>&1 ||
++    logger -t openclash-dns-link 'DNS endpoint update failed; check local listener and source zones'
+diff --git a/sources/full/package/custom/luci-app-openclash/root/etc/init.d/openclash b/sources/full/package/custom/luci-app-openclash/root/etc/init.d/openclash
+index de438ff..805639b 100644
+--- a/sources/full/package/custom/luci-app-openclash/root/etc/init.d/openclash
++++ b/sources/full/package/custom/luci-app-openclash/root/etc/init.d/openclash
+@@ -836,6 +836,7 @@ check_core_status()
+    if [ "$1" == "start" ]; then
+       change_dnsmasq "$enable_redirect_dns"
+       set_firewall
++      ruby /usr/share/openclash/dns_link.rb ready '' "$dns_port" >> "$LOG_FILE" 2>&1 || LOG_WARN "DNS linkage failed; check DNS settings and logread -e openclash-dns-link"
+       LOG_TIP "OpenClash Start Successful!"
+    else
+       set_firewall
+@@ -3719,6 +3720,10 @@ get_config()
+    http_port=$(uci_get_config "http_port")
+    socks_port=$(uci_get_config "socks_port")
+    enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
++   # New forwarding modes use their own persistent fw4 rules and resolver API.
++   # Do not enter the native dnsmasq rewrite/restore or direct-to-core branches.
++   dns_forward_mode="$enable_redirect_dns"
++   case "$enable_redirect_dns" in 3|4) enable_redirect_dns=0 ;; esac
+    if [ "$(uci_get_config "fakeip_range")"  == "0" ]; then
+       fakeip_range=$(ruby_read "$RAW_CONFIG_FILE" "['dns']['fake-ip-range']")
+    else
+@@ -3897,6 +3902,26 @@ start_service()
+          LOG_OUT "Step 3: Quick Start Mode, Skip Modify The Config File..."
+       fi
+ 
++      # Read-only validation of native DNS settings; do not generate DNS/groups.
++      forward_config="$TMP_CONFIG_FILE"
++      $QUICK_START && forward_config="$CONFIG_FILE"
++      ruby /usr/share/openclash/dns_native_check.rb "$forward_config" >> "$LOG_FILE" 2>&1 || {
++         LOG_ERROR "Native DNS preset rejected; select existing proxy groups in the native DNS server editor"
++         return 1
++      }
++      case "$dns_forward_mode" in 3|4)
++         ruby /usr/share/openclash/dns_link.rb preparing '' "$dns_port" >> "$LOG_FILE" 2>&1 || {
++            LOG_ERROR "Cannot enforce the selected resolver upstream; verify DNS API credentials, listener and port"
++            return 1
++         }
++         ruby /usr/share/openclash/dns_firewall.rb apply >> "$LOG_FILE" 2>&1 || {
++            LOG_ERROR "Cannot apply local DNS firewall rules; check source zones and existing DNS redirects"
++            return 1
++         }
++      ;;
++      *) ruby /usr/share/openclash/dns_firewall.rb deactivate >> "$LOG_FILE" 2>&1 || return 1 ;;
++      esac
++
+       LOG_OUT "Step 4: Start Running The Clash Core..."
+       start_run_core
+ 
+diff --git a/sources/full/package/custom/luci-app-openclash/root/etc/openclash/custom/openclash_custom_domain_dns_policy.list b/sources/full/package/custom/luci-app-openclash/root/etc/openclash/custom/openclash_custom_domain_dns_policy.list
+index de1b564..a54d46f 100644
+--- a/sources/full/package/custom/luci-app-openclash/root/etc/openclash/custom/openclash_custom_domain_dns_policy.list
++++ b/sources/full/package/custom/luci-app-openclash/root/etc/openclash/custom/openclash_custom_domain_dns_policy.list
+@@ -1,6 +1,4 @@
+-#'www.baidu.com': '114.114.114.114'
+-#'+.internal.crop.com': '10.0.0.1'
+-#"_vlmcs._tcp.lan": '127.0.0.1:53'
+-#"geosite:category-games@cn": [https://doh.pub/dns-query, 114.114.114.114, 223.5.5.5]
+-#"geosite:google": [tls://8.8.4.4, https://1.0.0.1/dns-query]
+-#"geosite:cn": [https://doh.pub/dns-query, 114.114.114.114, 223.5.5.5]
+\ No newline at end of file
++# Native Nameserver-Policy; enabled by the native custom_name_policy option.
++"geosite:cn":
++  - https://dns.alidns.com/dns-query#DIRECT
++  - https://doh.pub/dns-query#DIRECT
+diff --git a/sources/full/package/custom/luci-app-openclash/root/etc/openclash/custom/openclash_custom_overwrite.sh b/sources/full/package/custom/luci-app-openclash/root/etc/openclash/custom/openclash_custom_overwrite.sh
+index 05b4afe..c78d706 100644
+--- a/sources/full/package/custom/luci-app-openclash/root/etc/openclash/custom/openclash_custom_overwrite.sh
++++ b/sources/full/package/custom/luci-app-openclash/root/etc/openclash/custom/openclash_custom_overwrite.sh
+@@ -155,4 +155,32 @@ CONFIG_FILE="$1"
+     #      YAML.dump(Value, '$CONFIG_FILE');
+     #   end" 2>/dev/null >> $LOG_FILE
+ 
+-exit 0
+\ No newline at end of file
++# ProWrt native DNS preset. Native DNS server entries own nameserver,
++# default-nameserver and outbound selectors; no proxy group is hard-coded.
++ruby -ryaml -rYAML -r/usr/share/openclash/dns_native_check.rb -I /usr/share/openclash -e '
++  begin
++    path=ARGV.fetch(0)
++    config=YAML.load_file(path,aliases:true)
++    linked=%w[3 4].include?(OpenClashNativeDNS.uci("config.enable_redirect_dns"))
++    port=OpenClashNativeDNS.uci("config.dns_port")
++    if linked
++      raise "Invalid Mihomo DNS port" unless port.match?(/\A[0-9]+\z/) && (1..65535).cover?(port.to_i)
++      (config["dns"] ||= {})["listen"]="127.0.0.1:"+port
++    end
++    preset=OpenClashNativeDNS.check(config)
++    if preset
++      dns=config["dns"]
++      dns["proxy-server-nameserver"]=["https://dns.alidns.com/dns-query#DIRECT","https://doh.pub/dns-query#DIRECT"]
++      if OpenClashNativeDNS.uci("config.custom_name_policy")=="1"
++        dns["nameserver-policy"]=YAML.load_file("/etc/openclash/custom/openclash_custom_domain_dns_policy.list",aliases:true) || {}
++      end
++      %w[fallback fallback-filter proxy-server-nameserver-policy direct-nameserver direct-nameserver-follow-policy].each{|key|dns.delete(key)}
++    end
++    File.write(path,YAML.dump(config)) if linked || preset
++  rescue StandardError => e
++    warn(e.is_a?(RuntimeError) ? e.message : "Native DNS preset overwrite failed")
++    exit 1
++  end
++' "$CONFIG_FILE" || exit 1
++
++exit 0
+diff --git a/sources/full/package/custom/luci-app-openclash/root/etc/uci-defaults/99-prowrt-openclash-pin b/sources/full/package/custom/luci-app-openclash/root/etc/uci-defaults/99-prowrt-openclash-pin
+new file mode 100755
+index 0000000..0b36987
+--- /dev/null
++++ b/sources/full/package/custom/luci-app-openclash/root/etc/uci-defaults/99-prowrt-openclash-pin
+@@ -0,0 +1,19 @@
++#!/bin/sh
++# SPDX-License-Identifier: GPL-3.0-or-later
++set -eu
++metadata=/usr/share/prowrt/openclash-integration.json
++[ -f "$metadata" ] || exit 0
++version=$(jsonfilter -i "$metadata" -e '@.version')
++printf '%s\n' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+-r[0-9]+$'
++umask 077
++mkdir -p /etc/openclash/dns-link
++chmod 700 /etc/openclash/dns-link
++if [ ! -e /etc/openclash/dns-link/apk-world-before ]; then
++    cp /etc/apk/world /etc/openclash/dns-link/apk-world-before
++    chmod 600 /etc/openclash/dns-link/apk-world-before
++fi
++# Use apk's transaction rather than editing its database. This is deliberately
++# outside postinst: invoking apk while an apk transaction holds its lock fails.
++apk --no-network --repositories-file /dev/null --allow-untrusted add "luci-app-openclash=$version"
++grep -Fxq "luci-app-openclash=$version" /etc/apk/world
++logger -t prowrt-openclash "Pinned compatible OpenClash package $version"
+diff --git a/sources/full/package/custom/luci-app-openclash/root/lib/upgrade/keep.d/openclash-dns-link b/sources/full/package/custom/luci-app-openclash/root/lib/upgrade/keep.d/openclash-dns-link
+new file mode 100644
+index 0000000..2cb3650
+--- /dev/null
++++ b/sources/full/package/custom/luci-app-openclash/root/lib/upgrade/keep.d/openclash-dns-link
+@@ -0,0 +1 @@
++/etc/openclash/dns-link/
+diff --git a/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_firewall.rb b/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_firewall.rb
+new file mode 100644
+index 0000000..f0a44a9
+--- /dev/null
++++ b/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_firewall.rb
+@@ -0,0 +1,189 @@
++#!/usr/bin/env ruby
++# SPDX-License-Identifier: GPL-3.0-or-later
++require_relative 'dns_link'
++
++module OpenClashDNSFirewall
++  def self.command(*arguments)
++    result = IO.popen(arguments, &:read)
++    raise OpenClashDNSLink::Failure, 'DNS firewall command failed: ' + arguments.first unless $?.success?
++    result
++  end
++
++  def self.config
++    JSON.parse(command('ubus', 'call', 'uci', 'get', '{"config":"firewall"}')).fetch('values')
++  end
++
++  def self.local_addresses
++    command('ip', '-o', '-4', 'addr', 'show').scan(/\binet (\d+\.\d+\.\d+\.\d+)\//).flatten.reject { |ip| ip.start_with?('127.') }.uniq.sort
++  end
++
++  def self.valid_ip?(value, cidr = false)
++    ip, prefix = value.to_s.split('/', 2)
++    return false unless ip && ip.match?(/\A\d+\.\d+\.\d+\.\d+\z/) && ip.split('.').all? { |part| part.to_i <= 255 }
++    prefix.nil? || (cidr && prefix.match?(/\A\d+\z/) && (0..32).cover?(prefix.to_i))
++  end
++
++  def self.plan(existing, zones, sources, endpoints, target = endpoints.first)
++    known = existing.values.select { |item| item['.type'] == 'zone' }.map { |item| item['name'] }
++    raise OpenClashDNSLink::Failure, 'Choose existing internal DNS source zones' if zones.empty? || zones.any? { |zone| !zone.match?(/\A[A-Za-z0-9_-]+\z/) || !known.include?(zone) }
++    raise OpenClashDNSLink::Failure, 'Invalid DNS source subnet or endpoint' unless sources.all? { |source| valid_ip?(source, true) } && !endpoints.empty? && endpoints.all? { |ip| valid_ip?(ip) }
++    desired = {'prowrt_dns_endpoints' => {'.type' => 'ipset', 'name' => 'prowrt_dns_endpoints', 'family' => 'ipv4', 'match' => ['dest_ip'], 'entry' => endpoints}}
++    reused = {}
++    zones.each do |zone|
++      redirects = existing.select do |_name, item|
++        item['.type'] == 'redirect' && item['src'] == zone && item.fetch('enabled', '1') != '0' && item['src_dport'] == '53'
++      end
++      # Existing site-specific interception remains authoritative. Validate its
++      # local destination, preserve its source restrictions and reuse it.
++      redirects.each do |name, item|
++        generated = (name.start_with?('prowrt_dns_redirect_') || name == 'technitium_dns_redirect') && item['name'].to_s.start_with?('ProWrt ')
++        next if generated
++        destination = item['dest_ip'].to_s
++        unless item['target'] == 'DNAT' && item.fetch('dest_port', '53') == '53' && (destination.empty? || endpoints.include?(destination))
++          raise OpenClashDNSLink::Failure, 'Conflicting DNS redirect in zone ' + zone + '; review existing firewall rules'
++        end
++      end
++      reused[zone] = redirects.keys
++      # Adopt the old ProWrt factory rule only when its unrestricted shape is
++      # known. Custom site rules are reused without rewriting their contents.
++      legacy = existing['technitium_dns_redirect']
++      adopt = legacy && (legacy['name'] == 'Force LAN DNS to router' || legacy['name'].to_s.start_with?('ProWrt ')) && legacy['src'] == zone && legacy['src_dport'] == '53' && legacy['target'] == 'DNAT' && legacy['dest_port'] == '53' && (legacy['name'].to_s.start_with?('ProWrt ') || legacy['dest_ip'].to_s.empty? || endpoints.include?(legacy['dest_ip'])) && !legacy.key?('src_ip') && !legacy.key?('src_dip')
++      owned = adopt ? 'technitium_dns_redirect' : 'prowrt_dns_redirect_' + zone
++      if adopt || redirects.empty? || redirects.keys == [owned]
++        desired[owned] = {'.type' => 'redirect', 'name' => 'ProWrt local DNS ' + zone, 'src' => zone,
++          'proto' => ['tcp', 'udp'], 'src_dport' => '53', 'dest_port' => '53', 'target' => 'DNAT',
++          'family' => 'ipv4', 'reflection' => '0', 'enabled' => '1', 'ipset' => '!prowrt_dns_endpoints'}
++        desired[owned]['dest_ip'] = target if target
++        desired[owned]['src_ip'] = sources unless sources.empty?
++        reused[zone] = []
++      end
++      desired['prowrt_dns_input_' + zone] = {'.type' => 'rule', 'name' => 'ProWrt allow DNS ' + zone,
++        'src' => zone, 'proto' => ['tcp', 'udp'], 'dest_ip' => endpoints, 'dest_port' => '53', 'family' => 'ipv4', 'target' => 'ACCEPT'}
++      desired['prowrt_dns_input_' + zone]['src_ip'] = sources unless sources.empty?
++    end
++    [desired, reused]
++  end
++
++  def self.replace(name, item)
++    command('uci', '-q', 'delete', 'firewall.' + name) if config.key?(name)
++    return unless item
++    command('uci', 'set', 'firewall.' + name + '=' + item.fetch('.type'))
++    item.each do |key, value|
++      next if key.start_with?('.')
++      if value.is_a?(Array)
++        value.each { |entry| command('uci', 'add_list', "firewall.#{name}.#{key}=#{entry}") }
++      else
++        command('uci', 'set', "firewall.#{name}.#{key}=#{value}")
++      end
++    end
++    # A zone explicitly selected as internal must get DNS-only INPUT access
++    # before generic WAN DNS rejection; never widen management-port access.
++    command('uci', 'reorder', 'firewall.' + name + '=0') if name.start_with?('prowrt_dns_input_')
++  end
++
++  def self.apply
++    service = {'3' => 'technitium', '4' => 'adguardhome'}[OpenClashDNSLink.uci('enable_redirect_dns', '0')]
++    return unless service
++    existing = config
++    raise OpenClashDNSLink::Failure, 'Commit or discard pending firewall edits before applying DNS forwarding' unless command('uci', 'changes', 'firewall').strip.empty?
++    zones = OpenClashDNSLink.uci('dns_link_zones', 'lan').split.uniq
++    sources = OpenClashDNSLink.uci('dns_link_sources').split.uniq
++    owned_addresses = local_addresses
++    endpoints = OpenClashDNSLink.uci('dns_link_endpoints').split.uniq
++    automatic_endpoints = endpoints.empty?
++    endpoints = owned_addresses if endpoints.empty?
++    raise OpenClashDNSLink::Failure, 'DNS endpoints must be local interface addresses' unless (endpoints - owned_addresses).empty?
++    OpenClashDNSLink.verify_listener(service, endpoints)
++    desired, reused = plan(existing, zones, sources, endpoints, automatic_endpoints ? nil : endpoints.first)
++    path = '/etc/openclash/dns-link/firewall-before'
++    File.open(path, File::WRONLY | File::CREAT | File::EXCL, 0o600) { |file| file.write(command('uci', 'export', 'firewall')) } unless File.exist?(path)
++    changed = false
++    touched = []
++    begin
++      desired.each do |name, item|
++        actual = existing[name]&.reject { |key, _| key.start_with?('.') && key != '.type' }
++        next if actual == item
++        if existing.key?(name) && name.start_with?('prowrt_dns_') && actual && actual['name'].to_s !~ /\AProWrt |\Aprowrt_dns_endpoints\z/
++          raise OpenClashDNSLink::Failure, 'Existing DNS section name collision: ' + name
++        end
++        touched << name
++        changed = true
++        replace(name, item)
++      end
++      # Remove only stale sections generated by this feature, never site rules.
++      existing.each do |name, item|
++        next unless (name == 'technitium_dns_redirect' || name.start_with?('prowrt_dns_redirect_', 'prowrt_dns_input_')) && item['name'].to_s.start_with?('ProWrt ')
++        next if desired.key?(name)
++        touched << name
++        replace(name, nil)
++        changed = true
++      end
++      if changed
++        command('fw4', 'check')
++        command('uci', 'commit', 'firewall')
++        command('/etc/init.d/firewall', 'reload')
++      end
++      readback = config
++      raise OpenClashDNSLink::Failure, 'DNS firewall readback failed' unless desired.all? { |name, item| readback[name]&.reject { |key, _| key.start_with?('.') && key != '.type' } == item }
++      state = {'zones' => zones, 'endpoints' => endpoints, 'reused_redirects' => reused, 'changed' => changed,
++        'managed_redirects' => desired.select { |_name, item| item['.type'] == 'redirect' }.keys}
++      OpenClashDNSLink.atomic_json('/var/run/openclash-dns-firewall.json', state)
++      OpenClashDNSLink.atomic_json('/etc/openclash/dns-link/firewall-managed.json', state)
++    rescue StandardError
++      command('uci', 'revert', 'firewall')
++      # Restore only sections touched by this transaction, not unrelated rules.
++      touched.uniq.each { |name| replace(name, existing[name]) }
++      if changed
++        command('uci', 'commit', 'firewall')
++        command('/etc/init.d/firewall', 'reload')
++      end
++      raise
++    end
++  end
++
++  def self.deactivate
++    path = '/etc/openclash/dns-link/firewall-managed.json'
++    return unless File.file?(path)
++    raise OpenClashDNSLink::Failure, 'Commit pending firewall edits first' unless command('uci', 'changes', 'firewall').strip.empty?
++    state = JSON.parse(File.read(path))
++    existing = config
++    changed = false
++    touched = []
++    Array(state['managed_redirects']).each do |name|
++      item = existing[name]
++      next unless item && item['name'].to_s.start_with?('ProWrt ') && item['dest_port'] == '53' && item['enabled'] != '0'
++      command('uci', 'set', 'firewall.' + name + '.enabled=0')
++      touched << name
++      changed = true
++    end
++    if changed
++      command('fw4', 'check')
++      command('uci', 'commit', 'firewall')
++      command('/etc/init.d/firewall', 'reload')
++    end
++  rescue StandardError
++    if touched && !touched.empty?
++      command('uci', 'revert', 'firewall')
++      touched.each { |name| replace(name, existing[name]) }
++      if changed
++        command('uci', 'commit', 'firewall')
++        command('/etc/init.d/firewall', 'reload')
++      end
++    end
++    raise
++  end
++end
++
++if $PROGRAM_NAME == __FILE__
++  begin
++    File.open('/var/run/openclash-dns-fw.lock', File::RDWR | File::CREAT, 0o600) do |lock|
++      lock.flock(File::LOCK_EX)
++      ARGV[0] == 'deactivate' ? OpenClashDNSFirewall.deactivate : OpenClashDNSFirewall.apply
++    end
++  rescue StandardError => error
++    detail = error.is_a?(OpenClashDNSLink::Failure) ? error.message : error.class.to_s
++    system('logger', '-t', 'openclash-dns-link', 'DNS firewall failed: ' + detail)
++    warn 'DNS firewall failed: ' + detail
++    exit 1
++  end
++end
+diff --git a/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_link.rb b/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_link.rb
+new file mode 100644
+index 0000000..2e2ce6a
+--- /dev/null
++++ b/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_link.rb
+@@ -0,0 +1,271 @@
++#!/usr/bin/env ruby
++# SPDX-License-Identifier: GPL-3.0-or-later
++require 'json'
++
++module OpenClashDNSLink
++  class Failure < StandardError; end
++  class AuthenticationFailure < Failure; end
++
++  # curl receives credentials through stdin, never argv or a URL query.
++  class HTTP
++    def initialize(port)
++      raise Failure, 'Invalid local API port' unless port.to_s.match?(/\A\d+\z/) && (1..65535).cover?(port.to_i)
++      @base = "http://127.0.0.1:#{port}"
++    end
++
++    def request(path, method = 'GET', body = nil, authorization = nil, form = false)
++      config = "silent\nshow-error\nconnect-timeout = 2\nmax-time = 6\nnoproxy = \"*\"\n"
++      config += "header = #{JSON.generate('Authorization: ' + authorization)}\n" if authorization
++      if body
++        config += "header = #{JSON.generate('Content-Type: ' + (form ? 'application/x-www-form-urlencoded' : 'application/json'))}\n"
++        config += "data = #{JSON.generate(form ? body : JSON.generate(body))}\n"
++      end
++      result = IO.popen(['curl', '--config', '-', '--request', method, '--write-out', "\n%{http_code}", @base + path], 'r+') do |io|
++        io.write(config)
++        io.close_write
++        io.read(1024 * 1024 + 1)
++      end
++      raise Failure, 'Local DNS API unavailable' unless $?.success? && result && result.bytesize <= 1024 * 1024
++      payload, _, code = result.rpartition("\n")
++      raise AuthenticationFailure, 'Local DNS API authentication rejected' if %w[401 403].include?(code)
++      raise Failure, 'Local DNS API request failed' unless code.match?(/\A2\d\d\z/)
++      payload.strip.empty? ? {} : JSON.parse(payload)
++    rescue JSON::ParserError
++      raise Failure, 'Local DNS API returned invalid JSON'
++    end
++  end
++
++  def self.escape(value)
++    value.bytes.map { |byte| byte.chr.match?(/[A-Za-z0-9_.~-]/) ? byte.chr : '%%%02X' % byte }.join
++  end
++
++  class Technitium
++    def initialize(http, credentials, password_path = '/etc/technitium/setup-password')
++      @http = http
++      @token = credentials['technitium_token']
++      unless @token.to_s.empty?
++        raise AuthenticationFailure, 'Invalid Technitium token format' unless @token.match?(/\A[A-Za-z0-9._-]+\z/)
++        return
++      end
++      raise AuthenticationFailure, 'Configure a Technitium API token' unless File.file?(password_path)
++      password = File.read(password_path).strip
++      result = @http.request('/api/user/login', 'POST', 'user=admin&pass=' + OpenClashDNSLink.escape(password), nil, true)
++      @token = result['token']
++      raise AuthenticationFailure, 'Technitium login rejected; update API credentials' if @token.to_s.empty?
++      @login_token = true
++    end
++
++    def api(path, body = nil)
++      result = @http.request('/api/' + path, body ? 'POST' : 'GET', body, 'Bearer ' + @token, !!body)
++      raise AuthenticationFailure, 'Technitium API rejected access; verify token permissions' unless result['status'] == 'ok'
++      result['response'] || result
++    end
++
++    def current
++      value = api('settings/get')
++      {'forwarders' => value['forwarders'], 'forwarderProtocol' => value['forwarderProtocol']}
++    end
++
++    def desired(upstream)
++      {'forwarders' => [upstream], 'forwarderProtocol' => 'Udp'}
++    end
++
++    def save(upstream)
++      api('settings/set', 'forwarders=' + OpenClashDNSLink.escape(upstream) + '&forwarderProtocol=Udp')
++    end
++
++    def close
++      api('user/logout') if @login_token
++    rescue Failure
++      nil
++    end
++  end
++
++  class AdGuardHome
++    def initialize(http, credentials)
++      @http = http
++      user, password = credentials.values_at('adguard_user', 'adguard_password')
++      raise AuthenticationFailure, 'Configure AdGuard Home credentials' if user.to_s.empty? || password.to_s.empty?
++      raise AuthenticationFailure, 'Invalid AdGuard Home username' if user.include?(':')
++      @auth = 'Basic ' + [user + ':' + password].pack('m0')
++    end
++
++    def current
++      value = @http.request('/control/dns_info', 'GET', nil, @auth)
++      unless value['upstream_dns_file'].to_s.empty?
++        raise Failure, 'Move upstream-file rules into AdGuard Home settings before enabling forwarding; the file is not overwritten'
++      end
++      @conditional = Array(value['upstream_dns']).select { |server| server.to_s.start_with?('[/') }
++      {'upstream_dns' => value['upstream_dns'], 'fallback_dns' => value['fallback_dns'] || [], 'upstream_dns_file' => value['upstream_dns_file'].to_s}
++    end
++
++    def desired(upstream)
++      {'upstream_dns' => [upstream] + Array(@conditional), 'fallback_dns' => [], 'upstream_dns_file' => ''}
++    end
++
++    def save(upstream)
++      @http.request('/control/dns_config', 'POST', desired(upstream), @auth)
++    end
++
++    def close; end
++  end
++
++  # Only upstream fields are changed. Zones, leases, filtering and cache are
++  # owned by the selected resolver and are not rewritten by this integration.
++  def self.reconcile(adapter, upstream)
++    before = adapter.current
++    expected = adapter.desired(upstream)
++    return false if before == expected
++    yield before if block_given?
++    adapter.save(upstream)
++    raise Failure, 'Saved upstream readback mismatch' unless adapter.current == expected
++    true
++  ensure
++    adapter.close
++  end
++
++  def self.uci(name, fallback = '')
++    ['openclash.@overwrite[0].', 'openclash.config.'].each do |prefix|
++      value = IO.popen(['uci', '-q', 'get', prefix + name], &:read).strip
++      return value unless value.empty?
++    end
++    fallback
++  end
++
++  def self.atomic_json(path, value)
++    temporary = "#{path}.#{Process.pid}"
++    begin
++      File.open(temporary, File::WRONLY | File::CREAT | File::EXCL, 0o600) { |file| file.write(JSON.generate(value) + "\n") }
++      File.rename(temporary, path)
++    ensure
++      File.unlink(temporary) if File.exist?(temporary)
++    end
++  end
++
++  def self.activation_port(action, service, armed, core_port)
++    return core_port || uci('dns_port', '7874') if %w[preparing ready].include?(action)
++    # Saving a different resolver selection must not reuse the previous
++    # service's activation or redirect it before a validated core startup.
++    return unless armed['service'] == service
++    armed['dns_port']
++  end
++
++  def self.service_process?(pid, roots, parent = nil)
++    parent ||= proc { |value| File.read('/proc/' + value + '/status')[/^PPid:\s+(\d+)/, 1].to_s }
++    32.times do
++      return true if roots.include?(pid)
++      return false unless pid.match?(/\A[1-9]\d*\z/)
++      previous, pid = pid, parent.call(pid)
++      return false if pid.empty? || pid == previous
++    end
++    false
++  rescue Errno::ENOENT
++    false
++  end
++
++  def self.verify_listener(service, endpoints = nil)
++    value = IO.popen(['ubus', 'call', 'service', 'list', JSON.generate({'name' => service})], &:read)
++    instances = JSON.parse(value).dig(service, 'instances') || {}
++    pids = instances.values.map { |instance| instance['pid'].to_s }.reject(&:empty?)
++    rows = IO.popen(['netstat', '-lnptu'], err: File::NULL, &:read).lines.map(&:split)
++    %w[tcp udp].each do |protocol|
++      sockets = rows.select do |row|
++        owner = row.find { |field| field.match?(/\A\d+\//) }.to_s.split('/').first.to_s
++        row[0] == protocol && row[3].to_s.end_with?(':53') && service_process?(owner, pids)
++      end.map { |row| row[3].sub(/:53\z/, '') }
++      raise Failure, 'Start the selected DNS service on TCP/UDP port 53 before applying forwarding' if sockets.empty?
++      if endpoints && !sockets.include?('0.0.0.0') && (endpoints - sockets).any?
++        raise Failure, 'The selected DNS service does not listen on all chosen DNS addresses'
++      end
++    end
++  end
++
++  def self.run(action, primary_service = nil, core_port = nil)
++    state_path = '/var/run/openclash-dns-link.json'
++    if action == 'status'
++      puts(File.file?(state_path) ? File.read(state_path) : '{"mode":"not-applied"}')
++      return
++    end
++    raise Failure, 'Unknown DNS linkage action' unless %w[preparing ready reconcile primary-start stopping].include?(action)
++    # Stop never restores, clears, or substitutes any resolver upstream.
++    return if action == 'stopping'
++    service = {'3' => 'technitium', '4' => 'adguardhome'}[uci('enable_redirect_dns', '0')]
++    return unless service
++    return if action == 'primary-start' && primary_service != service
++    activation = '/etc/openclash/dns-link/activated'
++    armed = File.file?(activation) ? JSON.parse(File.read(activation)) : {}
++    port = activation_port(action, service, armed, core_port)
++    return if port.nil?
++    port = port.to_s
++    raise Failure, 'Invalid Mihomo DNS port' unless port.match?(/\A\d+\z/) && (1..65535).cover?(port.to_i)
++    directory = '/etc/openclash/dns-link'
++    Dir.mkdir(directory, 0o700) unless Dir.exist?(directory)
++    File.chmod(0o700, directory)
++    # Only OpenClash's post-validation startup may arm linkage. Merely saving
++    # a preset must not break a fresh installation before a valid core exists.
++    return unless %w[preparing ready].include?(action) || File.file?(activation)
++    credentials_path = directory + '/credentials.json'
++    credentials = File.file?(credentials_path) ? JSON.parse(File.read(credentials_path)) : {}
++    revision = [uci('dns_link_api_port', service == 'technitium' ? '5380' : '3000')] + [credentials_path, '/etc/technitium/setup-password'].map { |path| File.file?(path) ? [File.mtime(path).to_f, File.size(path)] : nil }
++    previous = File.file?(state_path) ? JSON.parse(File.read(state_path)) : {}
++    # Do not repeatedly submit rejected credentials from the existing watchdog.
++    return false if previous['auth_error'] && previous['credential_revision'] == revision && previous['service'] == service
++    File.open(directory + '/lock', File::RDWR | File::CREAT, 0o600) do |lock|
++      unless lock.flock(File::LOCK_EX | File::LOCK_NB)
++        raise Failure, 'DNS linkage is busy; retry OpenClash startup after the active task finishes' if action == 'preparing'
++        return
++      end
++      api_port = uci('dns_link_api_port', service == 'technitium' ? '5380' : '3000')
++      http = HTTP.new(api_port)
++      # One bounded startup task; no new periodic process and no login retries.
++      if action == 'primary-start'
++        available = false
++        10.times do
++          begin
++            http.request(service == 'technitium' ? '/api/status' : '/control/status')
++            available = true
++            break
++          rescue AuthenticationFailure
++            available = true
++            break
++          rescue Failure
++            sleep 1
++          end
++        end
++        raise Failure, 'Resolver startup API unavailable' unless available
++      end
++      verify_listener(service) if %w[preparing ready].include?(action)
++      adapter = service == 'technitium' ? Technitium.new(http, credentials) : AdGuardHome.new(http, credentials)
++      upstream = '127.0.0.1:' + port
++      changed = reconcile(adapter, upstream) do |before|
++        backup = directory + '/before-' + service + '.json'
++        atomic_json(backup, {'service' => service, 'upstream' => before, 'saved_at' => Time.now.utc.strftime('%FT%TZ')}) unless File.exist?(backup)
++      end
++      atomic_json(activation, {'service' => service, 'dns_port' => port}) if %w[preparing ready].include?(action)
++      state = {'mode' => 'fixed-mihomo', 'service' => service, 'upstream' => upstream, 'credential_revision' => revision}
++      if changed || previous != state
++        atomic_json(state_path, state)
++        system('logger', '-t', 'openclash-dns-link', "service=#{service} mode=fixed-mihomo settings_changed=#{changed ? 1 : 0}")
++      end
++    end
++  rescue Failure => error
++    atomic_json(state_path, {'mode' => 'error', 'service' => service, 'auth_error' => error.is_a?(AuthenticationFailure), 'credential_revision' => revision, 'error' => error.message})
++    raise
++  end
++end
++
++if $PROGRAM_NAME == __FILE__
++  begin
++    # An authentication latch suppresses repeated logins but must still block
++    # startup; returning success would leave a public upstream in use.
++    exit 1 if OpenClashDNSLink.run(ARGV[0] || 'status', ARGV[1], ARGV[2]) == false
++  rescue OpenClashDNSLink::Failure => error
++    system('logger', '-t', 'openclash-dns-link', error.message)
++    warn error.message
++    exit 1
++  rescue StandardError => error
++    # Raw response/parser exceptions can contain credentials. Log type only.
++    system('logger', '-t', 'openclash-dns-link', "DNS linkage failed (#{error.class}); no public DNS fallback")
++    exit 1
++  end
++end
+diff --git a/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_native_check.rb b/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_native_check.rb
+new file mode 100644
+index 0000000..73c26b4
+--- /dev/null
++++ b/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_native_check.rb
+@@ -0,0 +1,42 @@
++#!/usr/bin/env ruby
++# SPDX-License-Identifier: GPL-3.0-or-later
++require 'yaml'
++
++module OpenClashNativeDNS
++  def self.uci(key)
++    IO.popen(['uci', '-q', 'get', 'openclash.' + key], &:read).strip
++  end
++
++  # Validate the ordinary OpenClash DNS server entries. Never create a proxy
++  # group, generate its DNS configuration or choose an outbound on behalf of
++  # the administrator. The preset is inactive until native custom DNS is on.
++  def self.check(config, get = method(:uci))
++    enabled = get.call('@overwrite[0].enable_custom_dns')
++    enabled = get.call('config.enable_custom_dns') if enabled.empty?
++    return false unless enabled == '1'
++    entries = %w[prowrt_dns_google prowrt_dns_cloudflare]
++    active = entries.select { |entry| get.call(entry) == 'dns_servers' && get.call(entry + '.enabled') != '0' }
++    return false if active.empty?
++    groups = Array(config['proxy-groups']).select { |item| item.is_a?(Hash) }.map { |item| item['name'] }
++    active.each do |entry|
++      group = get.call(entry + '.specific_group')
++      raise 'Choose an existing proxy group for each native preset DNS server' if group.empty? || group == 'Disable' || group.match?(/[\x00-\x1f\x7f#&=?]/) || (!groups.include?(group) && group != 'GLOBAL')
++      # Native OpenClash can silently drop an invalid selector. Require the
++      # resulting DNS entry to retain the explicitly selected group.
++      suffix = '#' + group
++      raise 'The native DNS overwrite did not retain the selected proxy group' unless Array(config.dig('dns', 'nameserver')).any? { |server| server.to_s.end_with?(suffix) || server.to_s.include?(suffix + '&') }
++    end
++    raise 'The shared-resolver preset requires Redir-Host; choose it in OpenClash' unless config.dig('dns', 'enhanced-mode') == 'redir-host'
++    true
++  end
++end
++
++if $PROGRAM_NAME == __FILE__
++  begin
++    OpenClashNativeDNS.check(YAML.safe_load(File.read(ARGV.fetch(0)), aliases: true))
++  rescue StandardError => error
++    detail = error.is_a?(RuntimeError) ? error.message : 'Unable to validate native DNS settings'
++    warn detail
++    exit 1
++  end
++end
+diff --git a/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/openclash_update.sh b/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/openclash_update.sh
+index 30d4c62..7ca96fb 100644
+--- a/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/openclash_update.sh
++++ b/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/openclash_update.sh
+@@ -4,6 +4,13 @@
+ . /usr/share/openclash/openclash_curl.sh
+ . /usr/share/openclash/openclash_ps.sh
+ 
++# The upstream one-click updater installs an unmodified package and would
++# overwrite ProWrt's forwarding modes. Core/dashboard updaters are separate.
++if [ -f /usr/share/prowrt/openclash-integration.json ]; then
++   LOG_ERROR "ProWrt integration: install compatible ProWrt firmware from https://github.com/jearton/prowrt/releases; upstream one-click plugin updates are blocked to preserve the patch"
++   exit 1
++fi
++
+ set_lock() {
+    exec 878>"/tmp/lock/openclash_update.lock" 2>/dev/null
+    flock -x 878 2>/dev/null
+diff --git a/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/openclash_watchdog.sh b/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/openclash_watchdog.sh
+index 0557297..a55b0d7 100644
+--- a/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/openclash_watchdog.sh
++++ b/sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/openclash_watchdog.sh
+@@ -229,6 +229,9 @@ do
+    sleep 1
+ done >/dev/null 2>&1
+ 
++# Reuse this existing watchdog. No separate DNS polling daemon or cron.
++ruby /usr/share/openclash/dns_link.rb reconcile '' "$dns_port" >> "$LOG_FILE" 2>&1 || LOG_WATCHDOG "DNS linkage failed; fixed upstream is not restored to public DNS"
++
+ #check the clash service status
+ CORE_JSON=$(ubus call service list '{"name":"openclash"}' 2>/dev/null)
+ if [ -n "$CORE_JSON" ]; then
+diff --git a/sources/full/package/custom/luci-app-openclash/root/usr/share/prowrt/openclash-integration.json b/sources/full/package/custom/luci-app-openclash/root/usr/share/prowrt/openclash-integration.json
+new file mode 100644
+index 0000000..f0d6192
+--- /dev/null
++++ b/sources/full/package/custom/luci-app-openclash/root/usr/share/prowrt/openclash-integration.json
+@@ -0,0 +1,7 @@
++{
++  "integration_version": 1,
++  "package": "luci-app-openclash",
++  "version": "0.48.002-r3",
++  "upgrade_channel": "https://github.com/jearton/prowrt/releases",
++  "features": ["native-dns-forwarding-modes", "large-yaml-streaming", "native-dns-preset"]
++}
+diff --git a/sources/full/package/custom/luci-app-openclash/root/www/luci-static/resources/openclash/js/common.js b/sources/full/package/custom/luci-app-openclash/root/www/luci-static/resources/openclash/js/common.js
+index 79edc56..6ed33d4 100644
+--- a/sources/full/package/custom/luci-app-openclash/root/www/luci-static/resources/openclash/js/common.js
++++ b/sources/full/package/custom/luci-app-openclash/root/www/luci-static/resources/openclash/js/common.js
+@@ -1036,14 +1036,23 @@ function ocStreamEditorOnSubmit(id) {
+     input.style.display = 'none';
+     form.appendChild(input);
+ 
+-    form.addEventListener('submit', function() {
++    form.addEventListener('submit', function(event) {
++        var wasDisabled = id.disabled;
+         try {
+             var dt = new DataTransfer();
+             dt.items.add(new File([id.value], 'content.yaml', { type: 'text/plain' }));
+             input.files = dt.files;
+-            id.value = OC_EDITOR_STREAM_MARKER;
++            if (!input.files || input.files.length !== 1) throw new Error('File transfer unavailable');
++            // The file part carries the source. Keep the editor's value intact
++            // and omit its ordinary field, including when another listener
++            // cancels submission or the browser remains on this page.
++            id.disabled = true;
++            setTimeout(function() { id.disabled = wasDisabled; }, 0);
+         } catch (e) {
+-            input.parentNode.removeChild(input);
++            event.preventDefault();
++            event.stopImmediatePropagation();
++            id.disabled = wasDisabled;
++            alert('<%:Unable to stream the configuration. Your edits are preserved. Please use a supported browser or upload the YAML file.%>');
+         }
+     });
+ }

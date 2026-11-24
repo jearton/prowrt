@@ -50,3 +50,19 @@
 - [发布检查](../scripts/check-build-identity.py)：不挂载磁盘，直接从组合镜像内的 squashfs 读取版本，与附件、tag 和源码提交比对。
 - [首次启动检查](../scripts/lan-vm.py)：从实际启动的镜像执行 `prowrt-version`，检查 CLI、LuCI include 和 ACL 存在。
 - 适用范围、操作与回滚见[维护说明](../docs/build-cache-and-version.md)。没有修改 Technitium 或 Console 源码。
+
+## 2026-11-24 原生 DNS 模式与大配置（候选 r3）
+
+- [独立补丁](openclash/0001-prowrt-integration.patch)与[兼容清单](openclash/series.json)：维护原生下拉扩展、API 联动、界面、大配置及升级保护；构建先重放／校验，不兼容中止。
+- [原生设置入口](../sources/full/package/custom/luci-app-openclash/luasrc/model/cbi/openclash/settings.lua)：扩展本地 DNS 劫持下拉，沿用原生选项，不另建分流开关。
+- [附属配置](../sources/full/package/custom/luci-app-openclash/luasrc/openclash_dns.lua)：选择内网来源区域、可选 CIDR、多个本机 DNS 地址及私有 API 凭证。
+- [原生 UCI 预设](../sources/full/package/custom/luci-app-openclash/root/etc/config/openclash)：Google／Cloudflare DoH 与引导项；代理组首次从订阅现有组选择，不写死。
+- [原生策略文件](../sources/full/package/custom/luci-app-openclash/root/etc/openclash/custom/openclash_custom_domain_dns_policy.list)与[原生覆写脚本预设](../sources/full/package/custom/luci-app-openclash/root/etc/openclash/custom/openclash_custom_overwrite.sh)：国内直连、独立节点解析与订阅 DNS 残留清理，不改业务规则。
+- [只读原生配置检查](../sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_native_check.rb)：拒绝缺失的用户所选组，不生成分流／代理组。
+- [API 适配](../sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_link.rb)：仅校正主 DNS 全局上游，读回验证、认证失败保护，停止不恢复。
+- [fw4 配置](../sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/dns_firewall.rb)：内网多区域、来源可选限制、双入口例外、精确 DNS INPUT；复用已有规则并记录回滚值。
+- [代理避让](../sources/full/files/usr/libexec/prowrt-openclash-dns)：根据本地 53 接管规则对应的区域，自动让普通 DNS 先退出代理链。
+- [DNS 包启动回调](../scripts/prepare-dns-service-hook.py)：Technitium r3、AdGuard Home r2 仅添加有上限的启动校正，不修改程序或 Console，不增加 cron／常驻轮询。
+- [只读模板](../sources/full/package/custom/luci-app-openclash/luasrc/view/openclash/readonly_config.htm)与[提交辅助](../sources/full/package/custom/luci-app-openclash/root/www/luci-static/resources/openclash/js/common.js)：运行 YAML 不提交；源文件流式提交，失败保留编辑内容，不放大全局上限。
+- [APK 约束](../sources/full/package/custom/luci-app-openclash/root/etc/uci-defaults/99-prowrt-openclash-pin)与[一键更新保护](../sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/openclash_update.sh)：普通升级不能静默换成未适配上游包。
+- [维护说明](../docs/openclash-dns-integration-20261124.md)：菜单路径、默认范围、已有配置兼容、升级和回滚。

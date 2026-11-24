@@ -155,4 +155,32 @@ CONFIG_FILE="$1"
     #      YAML.dump(Value, '$CONFIG_FILE');
     #   end" 2>/dev/null >> $LOG_FILE
 
+# ProWrt native DNS preset. Native DNS server entries own nameserver,
+# default-nameserver and outbound selectors; no proxy group is hard-coded.
+ruby -ryaml -rYAML -r/usr/share/openclash/dns_native_check.rb -I /usr/share/openclash -e '
+  begin
+    path=ARGV.fetch(0)
+    config=YAML.load_file(path,aliases:true)
+    linked=%w[3 4].include?(OpenClashNativeDNS.uci("config.enable_redirect_dns"))
+    port=OpenClashNativeDNS.uci("config.dns_port")
+    if linked
+      raise "Invalid Mihomo DNS port" unless port.match?(/\A[0-9]+\z/) && (1..65535).cover?(port.to_i)
+      (config["dns"] ||= {})["listen"]="127.0.0.1:"+port
+    end
+    preset=OpenClashNativeDNS.check(config)
+    if preset
+      dns=config["dns"]
+      dns["proxy-server-nameserver"]=["https://dns.alidns.com/dns-query#DIRECT","https://doh.pub/dns-query#DIRECT"]
+      if OpenClashNativeDNS.uci("config.custom_name_policy")=="1"
+        dns["nameserver-policy"]=YAML.load_file("/etc/openclash/custom/openclash_custom_domain_dns_policy.list",aliases:true) || {}
+      end
+      %w[fallback fallback-filter proxy-server-nameserver-policy direct-nameserver direct-nameserver-follow-policy].each{|key|dns.delete(key)}
+    end
+    File.write(path,YAML.dump(config)) if linked || preset
+  rescue StandardError => e
+    warn(e.is_a?(RuntimeError) ? e.message : "Native DNS preset overwrite failed")
+    exit 1
+  end
+' "$CONFIG_FILE" || exit 1
+
 exit 0

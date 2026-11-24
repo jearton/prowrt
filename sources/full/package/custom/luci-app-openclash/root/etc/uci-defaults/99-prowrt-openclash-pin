@@ -1,0 +1,19 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+set -eu
+metadata=/usr/share/prowrt/openclash-integration.json
+[ -f "$metadata" ] || exit 0
+version=$(jsonfilter -i "$metadata" -e '@.version')
+printf '%s\n' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+-r[0-9]+$'
+umask 077
+mkdir -p /etc/openclash/dns-link
+chmod 700 /etc/openclash/dns-link
+if [ ! -e /etc/openclash/dns-link/apk-world-before ]; then
+    cp /etc/apk/world /etc/openclash/dns-link/apk-world-before
+    chmod 600 /etc/openclash/dns-link/apk-world-before
+fi
+# Use apk's transaction rather than editing its database. This is deliberately
+# outside postinst: invoking apk while an apk transaction holds its lock fails.
+apk --no-network --repositories-file /dev/null --allow-untrusted add "luci-app-openclash=$version"
+grep -Fxq "luci-app-openclash=$version" /etc/apk/world
+logger -t prowrt-openclash "Pinned compatible OpenClash package $version"
