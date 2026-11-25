@@ -2,13 +2,15 @@
 
 ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 APK，内置 LuCI、实时监控和原生 Technitium DNS。默认禁用 IPv6，镜像验收使用独立实验 LAN。AdGuard Home 随镜像提供，默认停用。
 
-最新发布：[v25.12.6-20261120.2](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261120.2)。新增 Netdata 2.13.0 原生 System Overview、全部网络接口实时表格和逐接口 RX/TX 曲线，预置布局可离线、无云账号、跨浏览器自动初始化；[本轮镜像验收](docs/netdata-overview-acceptance-20261120.md)。含 `kmod-bonding`，Netdata、ttyd 默认自启；终端每次要求系统登录并填满窗口剩余高度。查看[登录与终端基线验收](docs/acceptance-20261120.md)及[补丁清单](patches/README.md)。
+**[下载最新固件](https://github.com/jearton/prowrt/releases/latest)**：在发布页的 Assets 中下载 x86/64 UEFI 镜像和 `SHA256SUMS`，写盘前先校验。具体变更及适用范围以所选版本的发布说明为准。
 
-已知问题：扩展验收发现默认 AliDNS DoH 配合 Technitium DNSSEC 校验时，部分公网域名返回 SERVFAIL，尚未修复。不能将本版本标为全部功能验收通过；通过项目、实验配置和未验证范围见[VM 扩展验收](docs/vm-extended-validation-20261120.md)。
+**验收记录**：[v25.12.6-20261124.3](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261124.3) 原构建通过包版本、内核 ABI、权限和身份校验；验收步骤因读取测试登录态失败而标红。[对同一镜像的独立 VM 复验](https://github.com/jearton/prowrt/actions/runs/45484345242)已通过，具体项目见[发布记录](docs/releases.md)。物理网口映射和硬件驱动仍需在目标设备验证。
 
-下一版候选已按用户确认调整：DNSSEC 首启默认关闭，公网上游使用 AliDNS＋360 DoT，并行查询两个上游。189 编译产物已经在全新系统盘完成[虚拟机验收](docs/vm-validation-20261123.md)，包括 Fake-IP / redir-host、来源白名单、VPN、多 WAN、SQM、虚拟 bonding/VLAN、终端和监控。Technitium 和 Console 源码及程序文件均未修改。GitHub 尚待重新构建并发布；物理机项目仍需在目标设备验收。
+**升级注意**：先备份配置和数据，保留旧启动盘或镜像。升级不会覆盖已初始化的 Technitium 设置；启用 OpenClash DNS 联动后，停止 OpenClash 不会自动恢复主 DNS 的公网上游，未缓存的公网域名可能暂时无法解析。
 
-面板升级候选：Zashboard 3.30.0、MetaCubeXD 1.276.0，保留官方稳定 Mihomo 1.19.34。用户已于 2026-11-24 确认面板交互验收通过；这不代表新版最终镜像已发布。面板独立锁定、打包和检查见[记录](docs/openclash-dashboards-20261124.md)。
+v25.12.6-20261124.3 包含 Zashboard 3.30.0、MetaCubeXD 1.276.0，保留 Mihomo 1.19.34，见[面板打包与验收记录](docs/openclash-dashboards-20261124.md)。
+
+历史记录：[v25.12.6-20261120.2](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261120.2) 的 [Netdata 镜像验收](docs/netdata-overview-acceptance-20261120.md)、[登录与终端基线](docs/acceptance-20261120.md)及[扩展验收](docs/vm-extended-validation-20261120.md)仍可查阅。该版本在 AliDNS DoH 配合 Technitium DNSSEC 校验时曾出现部分公网域名 `SERVFAIL`。v25.12.6-20261124.3 调整了首启默认值，不能据此认定原问题已修复；另见[发布前的 VM 验收](docs/vm-validation-20261123.md)和[补丁清单](patches/README.md)。
 
 项目仓库已由 `jearton/openwrt-pro` 更名为 [`jearton/prowrt`](https://github.com/jearton/prowrt)。历史 Release、版本标签和固件附件保留；GHCR 统一使用 `ghcr.io/jearton/prowrt`，仅发布定制固件，正式版与 CI 候选通过版本 tag 区分。通用插件 [`luci-app-technitium`](https://github.com/jearton/luci-app-technitium) 保持独立。迁移范围与校验见[改名记录](docs/prowrt-rename-20261123.md)和 [GHCR 路径调整](docs/ghcr-root-20261123.md)。
 
@@ -127,7 +129,7 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 - **ttyd 自启**：默认随系统启动，并限制为 LAN 管理入口。
 - **Technitium 原生集成**：固定独立项目的源码提交，集成 DNS Server、Console、.NET 运行时及 LuCI 管理页面。
 - **主 DNS**：首启启用 Technitium，监听 IPv4 53 端口。
-- **默认上游**：当前源码首启设置 AliDNS 与 360 DoT，使用证书校验和固定引导 IP；已发布的 20261120.2 仍是旧配置。
+- **默认上游**：自 `v25.12.6-20261124.3` 起，新装首启使用 AliDNS 与 360 DoT，使用证书校验和固定引导 IP。
 - **并行查询**：首启启用 concurrent forwarding，并发数为 2；缓存未命中时同时请求两个公网上游。
 - **DNSSEC 默认值**：本固件首启设置为关闭；原生 Console 的 Settings → General → DNSSEC 可以自行开启。通用后台包默认值不变。
 - **升级保留 DNS 设置**：已完成初始化的安装不会因升级而覆盖管理员的 DNSSEC、上游及并发设置；需要使用新默认值时在原生 Console 手动调整。
@@ -154,7 +156,7 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 
 实现文件见 [Technitium 首启策略](sources/full/files/usr/libexec/technitium-provision)、[DNS 和防火墙默认值](sources/full/files/etc/uci-defaults/93-technitium-dns)及[构建配置](profiles/network-ui.config)。
 
-新增可选功能的界面路径、适用版本、验收与回滚见 [OpenClash DNS 联动和大配置维护说明](docs/openclash-dns-integration-20261124.md)。这些候选源码修改不表示历史发布镜像已经更新。
+新增可选功能的界面路径、适用版本、验收与回滚见 [OpenClash DNS 联动和大配置维护说明](docs/openclash-dns-integration-20261124.md)。
 
 #### 打包和构建兼容性
 
