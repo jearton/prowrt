@@ -1,0 +1,17 @@
+{
+  "before": {
+    "exit": 0,
+    "error": "",
+    "packages": 33
+  },
+  "after_old_trim": {
+    "exit": 1,
+    "error": "main.go:2:8: no required module provides package github.com/umahmood/haversine; to add it:\n\tgo get github.com/umahmood/haversine",
+    "packages": 32
+  },
+  "after_remove_incomplete_expansion": {
+    "exit": 0,
+    "error": "",
+    "packages": 33
+  }
+}
