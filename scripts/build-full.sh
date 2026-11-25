@@ -170,7 +170,7 @@ export GOPROXY='https://proxy.golang.org|direct'
 stage_start downloads
 make -j"$jobs" download
 stage_start compilation
-make -j"$jobs" V=s 2>&1 | tee build.log | awk '/^time:/ { print; fflush() }' ||
+make -j"$jobs" V=s 2>&1 | tee build.log | awk '/^time:|[Ee][Rr][Rr][Oo][Rr]:|fatal error:|undefined reference|\*\*\*/ { print; fflush() }' ||
     { tail -n 180 build.log; exit 1; }
 stage_start verification-and-export
 target=bin/targets/x86/64

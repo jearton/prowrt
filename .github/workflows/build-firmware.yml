@@ -72,6 +72,7 @@ jobs:
           input_hash=$(python3 scripts/build-cache.py keys)
           host_gcc=$(gcc -dumpfullversion)
           printf 'prefix=prowrt-v1-%s-%s-gcc%s-%s\n' "$RUNNER_OS" "$RUNNER_ARCH" "$host_gcc" "$input_hash" >> "$GITHUB_OUTPUT"
+          printf 'compatible=prowrt-v1-%s-%s-gcc%s-\n' "$RUNNER_OS" "$RUNNER_ARCH" "$host_gcc" >> "$GITHUB_OUTPUT"
 
       - name: Restore verified download inputs
         id: downloads
@@ -89,7 +90,11 @@ jobs:
         with:
           path: ${{ env.OPENWRT_CACHE_ROOT }}/ccache
           key: ${{ steps.cache-key.outputs.prefix }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: ${{ steps.cache-key.outputs.prefix }}-
+          # ccache validates compiler contents, flags and source. A changed
+          # package selection need not discard valid objects for unchanged code.
+          restore-keys: |
+            ${{ steps.cache-key.outputs.prefix }}-
+            ${{ steps.cache-key.outputs.compatible }}
 
       - name: Compile the complete x86/64 image
         env:
@@ -99,16 +104,20 @@ jobs:
         run: ./scripts/build-full.sh "$RUNNER_TEMP/openwrt" "$RUNNER_TEMP/firmware"
 
       - name: Bound reusable caches
-        if: github.ref == 'refs/heads/main'
+        if: ${{ always() && github.ref == 'refs/heads/main' && steps.cache-key.outcome == 'success' }}
         run: |
-          python3 scripts/build-cache.py trim "$OPENWRT_CACHE_ROOT"
-          CCACHE_DIR="$OPENWRT_CACHE_ROOT/ccache" CCACHE_MAXSIZE=2G \
-            "$RUNNER_TEMP/openwrt/staging_dir/host/bin/ccache" --cleanup
+          if test -d "$OPENWRT_CACHE_ROOT/dl"; then
+            python3 scripts/build-cache.py trim "$OPENWRT_CACHE_ROOT"
+          fi
+          if test -x "$RUNNER_TEMP/openwrt/staging_dir/host/bin/ccache"; then
+            CCACHE_DIR="$OPENWRT_CACHE_ROOT/ccache" CCACHE_MAXSIZE=2G \
+              "$RUNNER_TEMP/openwrt/staging_dir/host/bin/ccache" --cleanup
+          fi
 
       # Cache only public inputs and compiler objects, never staging_dir,
       # build_dir, files/, firmware images, runtime state, credentials or keys.
       - name: Save downloads for future builds
-        if: github.ref == 'refs/heads/main'
+        if: ${{ always() && github.ref == 'refs/heads/main' && steps.downloads.outcome == 'success' }}
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
@@ -117,7 +126,7 @@ jobs:
           key: ${{ steps.downloads.outputs.cache-primary-key }}
 
       - name: Save compiler cache for future builds
-        if: github.ref == 'refs/heads/main'
+        if: ${{ always() && github.ref == 'refs/heads/main' && steps.ccache.outcome == 'success' }}
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ env.OPENWRT_CACHE_ROOT }}/ccache
@@ -147,6 +156,14 @@ jobs:
           python3 scripts/build-metrics.py "$OPENWRT_METRICS_DIR" isolated-boot "$((SECONDS-started))" --status "$state"
           exit "$result"
 
+      - name: Preserve complete compiler diagnostics
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/openwrt/build.log"; then
+            mkdir -p "$OPENWRT_METRICS_DIR"
+            gzip -1c "$RUNNER_TEMP/openwrt/build.log" > "$OPENWRT_METRICS_DIR/compile.log.gz"
+          fi
+
       - name: Preserve build timings and cache statistics
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -155,6 +172,7 @@ jobs:
           path: |
             ${{ env.OPENWRT_METRICS_DIR }}/*.json
             ${{ env.OPENWRT_METRICS_DIR }}/*.txt
+            ${{ env.OPENWRT_METRICS_DIR }}/compile.log.gz
           if-no-files-found: warn
           retention-days: 14
 
