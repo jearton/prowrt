@@ -1,0 +1,4 @@
+# Optional read-only discovery. Configure SNMPv3 credentials before enabling.
+# Existing source sections and /etc/lingjing-snmp credentials are preserved.
+config discovery 'main'
+	option enabled '0'

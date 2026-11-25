@@ -1,0 +1,8 @@
+# Preserve configured SNMP sources, private credentials and site name collectors.
+/etc/config/lingjing_snmp
+/etc/lingjing-snmp/
+/etc/lingjing-dhcp-names/
+/etc/init.d/lingjing-snmp
+/etc/rc.d/S95lingjing-snmp
+/usr/libexec/lingjing-snmp-collect
+/usr/libexec/lingjing-dhcp-names-collect

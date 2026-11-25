@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "summary": {
+    "total": 2,
+    "localCount": 1,
+    "ready": true,
+    "snmpEnabled": true,
+    "snmpCount": 1
+  },
+  "snmpWriteStatus": 403,
+  "unauthStatus": 401,
+  "pageErrors": []
+}

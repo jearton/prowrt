@@ -1,0 +1,4 @@
+#!/bin/sh
+# Enabled service is dormant until explicitly configured; no source is prefilled.
+/etc/init.d/prowrt-snmp-discovery enable
+exit 0

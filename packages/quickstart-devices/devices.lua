@@ -57,6 +57,9 @@ function M.adapt(value, names, status, arp)
     elseif not M.readonly(names) then
         if value.result.devices~=nil and type(value.result.devices)~='table' then return nil,'Invalid QuickStart devices' end
         value.result.devices=array(value.result.devices)
+        -- The Go backend omits success for a successful response. Normalize
+        -- that documented shape before passing it to the optional SNMP merge.
+        value.success=0
         return value
     end
     local found,err=M.collect(names,status,arp)
@@ -90,6 +93,9 @@ function M.response(body)
     local value,err=M.adapt(native,M.interfaces(cursor),function(name)
         return util.ubus('network.interface.'..name,'status',{})
     end,arp)
+    if value and cursor:get('quickstart','main','snmp_discovery')=='1' then
+        value=require('luci.lingjing_quickstart_snmp').merge(value)
+    end
     return json.stringify(value or {success=-1000,error=err})
 end
 return M

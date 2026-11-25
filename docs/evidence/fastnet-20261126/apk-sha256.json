@@ -1,0 +1,13 @@
+{
+  "fastnet-0.8.10-r4.apk": "d8eedf85e882f69f915b8ab109d91a9d0377a014da1e332dad1c3a3b18077124",
+  "luci-app-fastnet-0.8.10-r1.apk": "8000a865eef27f5b4eed032bfd33218e6655a48a815ce19bdd46366a1816d776",
+  "luci-i18n-fastnet-zh-cn-0.apk": "0e497ed64de37edab1efef80d0341450ff17321fb4d618e4661e71e9ec0d3d8c",
+  "app-meta-fastnet-0.8.10-r23.apk": "72fe23e1347f7c59f1eeafb961c8ab5b20bdebd0606e4c82cc5487c395ae7296",
+  "linkease-app-entry-3.0.24-r1.apk": "bee8df7579f1f944544595f8fc6486018d29da6338734b9c9ae936e35a8905ed",
+  "luci-lib-linkeaseauth-1.2.1-r5.apk": "abad37fc3cd914f37b4ef3667ae3695d68de0d92d2ef3f97c32508b0a64587e5",
+  "luci-app-quickstart-0.12.10-r3.apk": "70f30d533c257aa7d3c3919cd23930f4628bd1bb308ae9f1dcf3bdac4665290a",
+  "prowrt-snmp-discovery-1.0.0-r1.apk": "535dfdf53c1989b708a2dc098446cc3b39895533d3931892074ee3eb99fac8b1",
+  "snmp-utils-ssl-5.9.4-r6.apk": "e6c481bcf6bca91a5a69021c068179c57ab796e18841caa8b915d9bf4ac37261",
+  "libnetsnmp-ssl-5.9.4-r6.apk": "0bfe7eb3548023be53af6dfba684faab37f4aa7e33770a37886de5bb17d6bd87",
+  "libpci-3.14.0-r2.apk": "71a4f1fa91d2e80f8e6d2b9def583d4b4c419b8ccfee8ba6a44ea0b167449020"
+}
