@@ -1,0 +1,19 @@
+{
+  "makeDefconfig": "passed",
+  "packagesEnabled": [
+    "fastnet",
+    "app-meta-fastnet",
+    "luci-app-fastnet",
+    "luci-i18n-fastnet-zh-cn",
+    "linkease-app-entry",
+    "luci-lib-linkeaseauth",
+    "prowrt-snmp-discovery",
+    "snmp-utils-ssl",
+    "libnetsnmp-ssl",
+    "libpci",
+    "luci-app-eqos",
+    "luci-app-netspeedtest"
+  ],
+  "ipv6Disabled": true,
+  "separateConfigurationTree": "/home/debian/projects/openwrt-x86-builder/work/prowrt-fastnet-20261126/config-tree"
+}

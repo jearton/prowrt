@@ -77,6 +77,7 @@ if find package/feeds -type l -name tailscale -print -quit | grep -q .; then
 fi
 mkdir -p package/custom files
 cp -a "$recipes/." "$repo/packages/netdata" package/custom/
+cp "$repo/sources/full/package/fastnet-meta.mk" package/fastnet-meta.mk
 python3 "$repo/scripts/prepare-openclash.py" package/custom/luci-app-openclash
 "$repo/scripts/prepare-technitium-luci.sh" package/custom
 python3 "$repo/scripts/prepare-dns-service-hook.py" adguardhome feeds/packages/net/adguardhome
@@ -153,7 +154,7 @@ grep -Fx CONFIG_PACKAGE_luci-i18n-argon-config-zh-cn=y .config
 grep -Fx CONFIG_PACKAGE_kmod-bonding=y .config
 grep -Fx CONFIG_PACKAGE_px5g-mbedtls=y .config
 grep -Fx CONFIG_PACKAGE_openssl-util=y .config
-for package in technitium luci-app-technitium luci-i18n-technitium-zh-cn adguardhome luci-app-adguardhome; do
+for package in fastnet luci-app-fastnet app-meta-fastnet prowrt-snmp-discovery snmp-utils-ssl technitium luci-app-technitium luci-i18n-technitium-zh-cn adguardhome luci-app-adguardhome; do
     grep -Fx "CONFIG_PACKAGE_${package}=y" .config
 done
 if grep -E '^CONFIG_PACKAGE_(docker|dockerd|docker-compose|containerd|runc|tini|luci-app-dockerman|luci-i18n-dockerman-[^=]*)=y$' .config; then
@@ -204,7 +205,12 @@ for name in ("ruby-json", "ruby-ostruct", "ruby-set", "ruby-tsort"):
 old["adguardhome"] = "0.107.79-r2"
 old["nlbwmon"] = "2025.06.02~29236be6-r3"
 old["luci-app-nlbwmon"] = "26.288.56989~75a306d-r3"
-old["luci-app-quickstart"] = "0.12.10-r2"
+old["luci-app-quickstart"] = "0.12.10-r3"
+old.update({"fastnet": "0.8.10-r4", "luci-app-fastnet": "0.8.10-r1",
+            "luci-i18n-fastnet-zh-cn": "0", "app-meta-fastnet": "0.8.10-r23",
+            "linkease-app-entry": "3.0.24-r1", "luci-lib-linkeaseauth": "1.2.1-r5",
+            "prowrt-snmp-discovery": "1.0.0-r1", "snmp-utils-ssl": "5.9.4-r6",
+            "libnetsnmp-ssl": "5.9.4-r6", "libpci": "3.14.0-r2"})
 for name in ("docker", "dockerd", "docker-compose", "containerd", "runc", "tini",
              "luci-app-dockerman", "luci-i18n-dockerman-zh-cn"):
     old.pop(name, None)

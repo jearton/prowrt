@@ -1,0 +1,16 @@
+[
+  {
+    "scheme": "http",
+    "status": 200,
+    "path": "/webui/",
+    "title": "FastNet Stream Console",
+    "errors": []
+  },
+  {
+    "scheme": "https",
+    "status": 200,
+    "path": "/webui/",
+    "title": "FastNet Stream Console",
+    "errors": []
+  }
+]

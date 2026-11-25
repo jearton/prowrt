@@ -85,6 +85,11 @@ jobs:
         run: |
           lua5.1 tests/check-quickstart-devices.lua packages/quickstart-devices/devices.lua
           node --check packages/quickstart-devices/errors.js
+          node --check packages/quickstart-devices/home-count.js
+          luac5.1 -p sources/full/package/custom/prowrt-snmp-discovery/root/usr/lib/lua/luci/*.lua
+          luac5.1 -p sources/full/package/custom/prowrt-snmp-discovery/root/usr/libexec/prowrt-snmp-collect
+          sh -n sources/full/package/custom/prowrt-snmp-discovery/root/etc/init.d/prowrt-snmp-discovery
+          sh -n sources/full/package/custom/fastnet/files/fastnet.uci-default
           python3 -c 'import ast; ast.parse(open("scripts/prepare-quickstart-devices.py").read())'
       - name: Check independently pinned OpenClash dashboards
         run: |

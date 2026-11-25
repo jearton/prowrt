@@ -26,9 +26,20 @@ def prepare(package):
     gate = '''
   local path = http.urldecode((http.getenv("REQUEST_URI") or ""):match("^[^?]+") or "")
   local is_devices = http.getenv("REQUEST_METHOD") == "GET" and path:match("^/cgi%-bin/luci/istore/lanctrl/listDevices/?$")
+  if http.getenv("REQUEST_METHOD") == "GET" and path:match("^/cgi%-bin/luci/istore/lingjing/snmpSummary/?$") then
+    http.prepare_content("application/json")
+    if not get_session() then
+      http.status(401, "Authentication required")
+      http.write_json({success=-1000,error="Authentication required"})
+      return
+    end
+    http.write_json(require("luci.lingjing_snmp_summary").get())
+    return
+  end
   if http.getenv("REQUEST_METHOD") == "POST" and path:match("^/cgi%-bin/luci/istore/lanctrl/") then
     local discovery = require "luci.prowrt_quickstart_devices"
-    if discovery.readonly(discovery.interfaces(require("luci.model.uci").cursor())) then
+    local cursor = require("luci.model.uci").cursor()
+    if cursor:get('quickstart','main','snmp_discovery') == '1' or discovery.readonly(discovery.interfaces(cursor)) then
       http.status(403, "Read-only discovery")
       http.prepare_content("application/json")
       http.write_json({success=-1000,error="Multi-interface discovery is read-only; use native management pages"})
@@ -81,17 +92,35 @@ def prepare(package):
     text = text.replace(old, new, 1)
     javascript = index.read_text()
     start = 'const{data:kt}=yield G.DeviceMangement.listDevices.GET();kt.result&&'
-    replacement = 'const{data:kt}=yield G.DeviceMangement.listDevices.GET();window.prowrtDevices?.clear();if(kt.success||!kt.result)throw new Error(kt.error||"Invalid device-list response");kt.result.prowrtReadOnly&&window.prowrtDevices?.readonly();kt.result&&'
+    replacement = 'const{data:kt}=yield G.DeviceMangement.listDevices.GET();window.prowrtDevices?.clear();if(kt.success||!kt.result)throw new Error(kt.error||"Invalid device-list response");kt.result.prowrtReadOnly&&window.prowrtDevices?.readonly(!!kt.result.snmpDiscovery);kt.result&&'
     end = '}catch(kt){}finally{P.Close()}}),S='
     assert javascript.count(start) == 1 and javascript.count(end) == 1
     javascript = javascript.replace(start, replacement, 1).replace(end,
         '}catch(kt){p.value=[],m.value=[],window.prowrtDevices?.failure(kt)}finally{P.Close()}}),S=', 1)
+    # Exact replacements are guarded by the upstream asset hash above. Do not
+    # silently keep an iStore metadata installer for a built-in native service.
+    baby = re.findall(r'\{icon:"baby",.*?alink:"/cgi-bin/luci/admin/services/appfilter"\},', javascript)
+    assert len(baby) == 1
+    javascript = javascript.replace(baby[0], '', 1)
+    edits = {
+        'if(R.icon=="speed")return m();': 'if(R.icon=="speed"){window.location.href="/cgi-bin/luci/admin/services/fastnet";return;}',
+        'w(),h();const _=': 'const _=',
+        '{id:"gateway",label:a("\\u6D6E\\u52A8\\u7F51\\u5173")},': '',
+        'n({activeTab:x});const C=nt=>{x.value=nt}': 'n({activeTab:x});const C=nt=>{if(nt==="ip"){window.location.href="/cgi-bin/luci/admin/network/eqos";return;}x.value=nt}',
+        'onClick:v=>l.value=m,class:lt({active:l.value===m})': 'onClick:v=>{if(m===2){window.location.href="/cgi-bin/luci/admin/network/eqos";return;}l.value=m},class:lt({active:l.value===m})',
+        'd=()=>L(this,null,function*(){l.value=3,yield na(),u.value&&(u.value.activeTab="ip")})': 'd=()=>{window.location.href="/cgi-bin/luci/admin/network/eqos"}',
+    }
+    for before, after in edits.items():
+        assert javascript.count(before) == 1, before
+        javascript = javascript.replace(before, after, 1)
     recipe = package / 'Makefile'
     assert re.search(r'^PKG_RELEASE:=1$', recipe.read_text(), re.M)
     controller.write_text(text)
     index.write_text(javascript)
     shutil.copy2(REPO / 'packages/quickstart-devices/devices.lua', payload / 'usr/lib/lua/luci/prowrt_quickstart_devices.lua')
     shutil.copy2(REPO / 'packages/quickstart-devices/errors.js', assets / 'prowrt-devices.js')
+    with (assets / 'prowrt-devices.js').open('a') as helper:
+        helper.write((REPO / 'packages/quickstart-devices/home-count.js').read_text())
     digest = hashlib.sha256()
     for asset in sorted(p for p in assets.rglob('*') if p.is_file()):
         digest.update(asset.relative_to(assets).as_posix().encode() + b'\0' + asset.read_bytes())
@@ -99,8 +128,11 @@ def prepare(package):
     html = re.sub(r'v=istoreos-[a-f0-9]+', 'v=' + version, template.read_text())
     html = html.replace('<script type="module"', '<script src="/luci-static/quickstart/prowrt-devices.js?v=' + version + '"></script>\n<script type="module"', 1)
     template.write_text(html)
-    recipe.write_text(re.sub(r'^PKG_RELEASE:=1$', 'PKG_RELEASE:=2', recipe.read_text(), flags=re.M))
-    print('Prepared QuickStart LuCI r2 device discovery; Go binary unchanged; assets ' + version)
+    makefile = re.sub(r'^PKG_RELEASE:=1$', 'PKG_RELEASE:=3', recipe.read_text(), flags=re.M)
+    makefile, count = re.subn(r'^(  DEPENDS:=.*)$', r'\1 +prowrt-snmp-discovery +luci-app-fastnet +luci-app-eqos', makefile, flags=re.M)
+    assert count == 1
+    recipe.write_text(makefile)
+    print('Prepared QuickStart LuCI r3 native service entries and SNMP hooks; Go binary unchanged; assets ' + version)
 
 
 if __name__ == '__main__':

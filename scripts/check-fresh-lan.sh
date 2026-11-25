@@ -104,6 +104,9 @@ until [[ $(status "$luci_http/cgi-bin/luci/" 2>/dev/null) = 403 ]] &&
 done
 
 python3 "$repo/scripts/lan-vm.py" dns-defaults "$test_dir"
+if [[ -f $repo/fastnet.lock.json && -z ${FRESH_LAN_FIXTURE_APKS:-} ]]; then
+    python3 "$repo/scripts/lan-vm.py" fastnet-defaults "$test_dir"
+fi
 
 login() {
     local -a password_args=(--data-urlencode "luci_password@$test_dir/root-password")

@@ -1,0 +1,81 @@
+#!/usr/bin/lua
+-- Read-only SNMP inventory; no neighbor injection or control writes.
+local fs=require 'nixio.fs'
+local json=require 'luci.jsonc'
+local uci=require('luci.model.uci').cursor()
+local base='/tmp/lingjing-snmp'
+fs.mkdir(base,'700')
+local function arr(t) return setmetatable(t or {},{__jsontype='array'}) end
+local function read(path) return json.parse(fs.readfile(path) or '') end
+local function ipnum(ip)
+ local a,b,c,d=tostring(ip):match('^(%d+)%.(%d+)%.(%d+)%.(%d+)$')
+ if not a then return end
+ a,b,c,d=tonumber(a),tonumber(b),tonumber(c),tonumber(d)
+ if a>255 or b>255 or c>255 or d>255 then return end
+ return ((a*256+b)*256+c)*256+d
+end
+local function permitted(ip,networks)
+ local n=ipnum(ip);if not n then return false end
+ for _,cidr in ipairs(networks or {}) do
+  local addr,bits=cidr:match('^([^/]+)/(%d+)$');bits=tonumber(bits)
+  local net=ipnum(addr)
+  if net and bits and bits>=0 and bits<=32 then
+   local block=2^(32-bits)
+   if math.floor(n/block)==math.floor(net/block) and n%block~=0 and n%block~=block-1 then return true end
+  end
+ end
+ return false
+end
+local function walk(name,host,oid,unordered)
+ local out=base..'/'..name..'.walk'
+ local flags=unordered and '-Onx -Cc' or '-On'
+ local cmd="SNMPCONFPATH=/etc/lingjing-snmp/"..name.." MIBS='' NETSNMP_PERSISTENT_DIR="..base.." timeout 20 snmpwalk "..flags..' -t 2 -r 1 '..host..' '..oid..' > '..out..' 2>/dev/null'
+ local rc=os.execute(cmd)
+ local stat=fs.stat(out)
+ if rc~=0 or not stat or stat.size>524288 then fs.unlink(out);return nil end
+ local text=fs.readfile(out);fs.unlink(out);return text
+end
+local all,status,seen=arr(),arr(),{}
+uci:foreach('lingjing_snmp','source',function(s)
+ local name=s['.name'];local host=s.host
+ if s.enabled~='1' then return end
+ if not name:match('^[%w_%-]+$') or not ipnum(host) then return end
+ local nets=s.networks;if type(nets)=='string' then nets={nets} end
+ local now=os.time();local path=base..'/'..name..'.json'
+ local prev=read(path)
+ local arp=walk(name,host,'1.3.6.1.2.1.4.22.1.2',true)
+ local interfaces=arp and walk(name,host,'1.3.6.1.2.1.31.1.1.1.1',false)
+ local rows,ifnames=arr(),{}
+ local valid=arp and interfaces and not arp:match('No Such') and not interfaces:match('No Such')
+ if valid then
+  for idx,label in interfaces:gmatch('%.1%.3%.6%.1%.2%.1%.31%.1%.1%.1%.1%.(%d+)%s*=%s*STRING:%s*([^\r\n]+)') do
+   ifnames[idx]=label:gsub('^"',''):gsub('"$','')
+  end
+  for idx,ip,hex in arp:gmatch('%.1%.3%.6%.1%.2%.1%.4%.22%.1%.2%.(%d+)%.(%d+%.%d+%.%d+%.%d+)%s*=%s*Hex%-STRING:%s*([^\r\n]+)') do
+   local oct={};for b in hex:gmatch('%x%x') do oct[#oct+1]=b:upper() end
+   local mac=table.concat(oct,':')
+   if #oct==6 and mac~='00:00:00:00:00:00' and permitted(ip,nets) then
+    local iface=ifnames[idx] or idx
+    local vlan=iface:lower():match('vlan%-?interface%s*(%d+)') or iface:lower():match('vlan%s*(%d+)')
+    rows[#rows+1]={ip=ip,mac=mac,source=name,switch=host,vlan=vlan,observedAt=now}
+    if #rows>=4096 then valid=false;break end
+   end
+  end
+  -- A non-empty ARP response with no parsable rows must not erase good data.
+  if #rows==0 and arp:match('Hex%-STRING') then valid=false end
+ end
+ if valid then
+  prev={observedAt=now,devices=rows};fs.writefile(path..'.new',json.stringify(prev));fs.chmod(path..'.new','600');fs.rename(path..'.new',path)
+ end
+ local age=prev and now-(prev.observedAt or 0) or nil
+ status[#status+1]={source=name,host=host,ok=not not valid,age=age,count=prev and #(prev.devices or {}) or 0}
+ if prev and age>=0 and age<=180 then
+  for _,row in ipairs(prev.devices or {}) do
+   if not seen[row.ip] then row.stale=not valid;all[#all+1]=row;seen[row.ip]=true end
+  end
+ end
+ if not valid then os.execute('logger -t lingjing-snmp '..name..':collection-failed') end
+end)
+local result={generatedAt=os.time(),devices=all,sources=status}
+fs.writefile(base..'/clients.json.new',json.stringify(result));fs.chmod(base..'/clients.json.new','600');assert(fs.rename(base..'/clients.json.new',base..'/clients.json'))
+print('SNMP inventory records='..#all)

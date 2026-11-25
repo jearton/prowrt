@@ -1,0 +1,23 @@
+{
+  "checked_on": "2026-11-26",
+  "upstream": {
+    "repo": "https://github.com/istoreos/istoreos-app-hub",
+    "commit": "ed25f14656254b63f6adee57584742a6ccbfca04",
+    "archive_sha256": "36fe6a64ceb9b8d30f041294aba06c89602a6df76d6530a8528b06f6a7d5000e"
+  },
+  "metadata_framework": {
+    "repo": "https://github.com/istoreos/openwrt-app-meta",
+    "commit": "b063e9cc612e76dc90cfed15757efb6741eaffc8",
+    "path": "meta.mk",
+    "sha256": "43a9494400d8d022f7d60dceaa0c22fe4aa821fac37e3500dac37f73cbc80175"
+  },
+  "runtime_archives": {
+    "fastnet-binary-0.8.10.tar.gz": "7201986d9b01b83ba6eb3fd0080916caf31a01fb26a0fcc216c53a6e6297b8ba",
+    "linkease-app-entry-runtime-3.0.24-linux-amd64.tar.gz": "72cbaa9df83899467223d1812204f198d9fdd9d51f821f2c203936ecbce79440"
+  },
+  "local_changes": [
+    "fastnet r4: remove automatic WAN TCP 3200 ACCEPT rule; do not delete administrator firewall rules",
+    "app-meta-fastnet r23: use the vendored APK-aware metadata framework",
+    "retain upstream shared authentication and app registration"
+  ]
+}

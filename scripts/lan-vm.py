@@ -283,6 +283,20 @@ if __name__ == "__main__":
         forced_dns(guest)
     elif action == "dns-defaults":
         dns_defaults(guest)
+    elif action == "fastnet-defaults":
+        guest.run("""
+apk info -v | grep -Fx 'fastnet-0.8.10-r4'
+apk info -v | grep -Fx 'luci-app-quickstart-0.12.10-r3'
+apk info -v | grep -Fx 'prowrt-snmp-discovery-1.0.0-r1'
+/etc/init.d/fastnet status | grep -Fx running
+test "$(uci -q get lingjing_snmp.main.enabled)" = 0
+test -z "$(uci -q get firewall.fastnet || true)"
+test -r /usr/lib/lua/luci/lingjing_quickstart_snmp.lua
+test -r /lib/upgrade/keep.d/prowrt-snmp
+curl -fsS --max-time 5 http://127.0.0.1:3200/webui/ > /tmp/fastnet-ci.html
+grep -q FastNet /tmp/fastnet-ci.html
+""")
+        print("Fresh image includes running FastNet, updated QuickStart and dormant SNMP discovery; no automatic WAN allowance", flush=True)
     elif action == "terminal-password":
         password = secrets.token_hex(24)
         guest.run("printf '%s\\n' 'root:" + password + "' | chpasswd")

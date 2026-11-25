@@ -1,0 +1,7 @@
+{
+  "originalDiskAndNicConfigurationRestored": true,
+  "vm9000": "running",
+  "vm9001": "stopped",
+  "taskBrowserProxyStopped": true,
+  "physicalDevicesChanged": false
+}

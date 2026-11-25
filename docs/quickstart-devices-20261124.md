@@ -36,3 +36,5 @@ uci commit quickstart
 - Mac Chrome 显示两个接口的设备和只读提示；配置不存在的接口后显示明确错误；恢复默认 lan 后警告消失且正常列表恢复。
 
 原 VM 磁盘保留；生产更新前须自行保存匹配的旧 APK。回滚安装旧 `luci-app-quickstart`，删除 `quickstart.main.device_interfaces`；如回退到旧版，空 ARP 错误也会恢复。测试不改生产设备、不刷整机。完整镜像验收及发布状态见上述发布证据。实际 API 与浏览器检查见[验收数据](evidence/quickstart-devices-20261124/acceptance.json)。
+
+后续 SNMP 只读发现与首页入口集成见 [2026-11-26 维护说明](quickstart-fastnet-20261126.md)；本文保留原 r2 验收边界，不代表后续包没有 SNMP 支持。
