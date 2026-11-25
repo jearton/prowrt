@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -33,7 +34,38 @@ def prepare(root, tree, out):
             raise ValueError("Cache children cannot be symlinks")
         path.mkdir(parents=True, exist_ok=True)
     (root / ".prowrt-cache").write_text("v1\n")
+    reset_go_expansions(root / "dl")
     return root
+
+
+def reset_go_expansions(downloads):
+    """Persist Go's authenticated downloads, never partially pruned source trees.
+
+    Go trusts an existing module expansion. Removing individual old .go files
+    leaves it looking downloaded but unable to provide any packages. This also
+    repairs caches saved by the earlier per-file trimming implementation.
+    """
+    modules = downloads / "go-mod-cache"
+    if not modules.exists():
+        return
+    if modules.is_symlink() or any(path.is_symlink() for path in modules.rglob("*")):
+        raise ValueError("Refusing to clean a Go cache containing symlinks")
+    retained = modules / "cache"
+    for parent, keep in ((modules, retained), (retained, retained / "download")):
+        if not parent.is_dir():
+            continue
+        for path in parent.iterdir():
+            if path == keep:
+                continue
+            if path.is_dir():
+                # Module expansions are normally read-only.
+                path.chmod(0o755)
+                for child in path.rglob("*"):
+                    if child.is_dir():
+                        child.chmod(0o755)
+                shutil.rmtree(path)
+            else:
+                path.unlink()
 
 
 def configure(config, root, tree, out):
@@ -125,5 +157,6 @@ if __name__ == "__main__":
         # A dedicated marker prevents accidental pruning of an arbitrary path.
         if (args.root / ".prowrt-cache").read_text().strip() != "v1":
             raise SystemExit("Not a ProWrt cache directory")
+        reset_go_expansions(args.root / "dl")
         trim(args.root / "dl", 2 * 1024**3)
         trim(args.root / "assets", 512 * 1024**2)

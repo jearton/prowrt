@@ -16,6 +16,7 @@
 ## 缓存边界
 
 - `dl/`：OpenWrt 原生下载目录，原配方的摘要检查继续生效。保存前按文件更新时间淘汰至 2 GiB。
+- Go 模块只持久保存 `dl/go-mod-cache/cache/download/` 的下载文件。恢复和保存时整体清除已展开的模块源码，让 Go 从下载归档重新校验、展开；不在展开目录内逐文件淘汰，防止删掉 `.go` 文件后仍被识别为已下载。旧缓存中已被部分清理的展开目录也会自动清除。
 - `assets/`：iStoreOS UI 来源镜像，使用完整 SHA-256 命名；每次命中重新核对内容，损坏时重新下载，临时下载完成且通过摘要校验后才替换。保存上限为 512 MiB。
 - `ccache/`：C/C++ 编译缓存，上限 2 GiB；使用 compiler content 检查，源码、头文件及编译选项仍由 ccache 检查。
 - 不保存整个构建树、host 工具安装目录、staging_dir、build_dir、根文件系统、旧 `files/`、运行配置、密钥或凭证。
@@ -25,6 +26,8 @@
 - 下载与编译缓存合计最多约 4.5 GiB/次快照；GitHub 仓库配额和淘汰策略仍然适用，不保证每次都能命中。
 
 CI 缓存位于 `$RUNNER_TEMP/prowrt-cache`，新源码树位于 `$RUNNER_TEMP/openwrt`，保持现有禁止复用旧构建树的检查。编译完成或失败后均尝试保存经过容量约束的下载和 ccache；失败不会产生正式版，缓存本身也不作为固件验收证据。
+
+2026-11-26 的两次完整构建失败，没有发布镜像。[第二次完整日志](https://github.com/jearton/prowrt/actions/runs/45681222838) 定位到 LibreSpeed 的 Go 依赖缺失。使用相同 Go 1.26.9 和它的 `haversine` 依赖在独立 Linux 目录验证：完整缓存可解析 33 个包；复现逐文件淘汰、重新创建编译索引后，出现同样的 `no required module provides package`；执行修正后的缓存准备、从保留归档重新展开后恢复成功。见 [原始结果](evidence/build-cache-20261126/go-expansion-repro.json)。修复不更改 LibreSpeed 版本、Go 模块版本或 `go.sum`，也不关闭摘要验证。
 
 Linux 手动构建可以显式指定独立目录；构建目录与输出目录必须不存在，缓存路径不允许空格、shell/make 展开字符或与这两个目录互相包含：
 

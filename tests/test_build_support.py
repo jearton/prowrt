@@ -128,6 +128,38 @@ class BuildSupport(unittest.TestCase):
         report = metrics.update(self.root / 'metrics', 'compilation', 123, 'failure')
         self.assertEqual(report['stages'][0], {'name': 'compilation', 'seconds': 123, 'status': 'failure'})
 
+    def test_restored_go_cache_discards_partial_expansions_keeps_downloads(self):
+        external = self.root / 'cache'
+        modules = external / 'dl/go-mod-cache'
+        expanded = modules / 'example.invalid/dependency@v1.0.0'
+        expanded.mkdir(parents=True)
+        (expanded / 'go.mod').write_text('module example.invalid/dependency\n')
+        expanded.chmod(0o555)
+        downloads = modules / 'cache/download/example.invalid/dependency/@v'
+        downloads.mkdir(parents=True)
+        archive = downloads / 'v1.0.0.zip'
+        archive.write_bytes(b'Go verifies the actual archive against go.sum')
+        cache.prepare(external, self.root / 'tree', self.root / 'output')
+        self.assertFalse(expanded.exists())
+        self.assertTrue(archive.exists())
+        # The save path also removes newly expanded modules before LRU pruning.
+        expanded.mkdir(parents=True)
+        (expanded / 'source.go').write_text('package dependency\n')
+        cache.reset_go_expansions(external / 'dl')
+        self.assertFalse(expanded.exists())
+        self.assertTrue(archive.exists())
+
+    def test_go_cache_cleanup_rejects_nested_symlinks(self):
+        external = self.root / 'cache'
+        modules = external / 'dl/go-mod-cache'
+        modules.mkdir(parents=True)
+        outside = self.root / 'outside'
+        outside.mkdir()
+        (modules / 'escape').symlink_to(outside, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            cache.prepare(external, self.root / 'tree', self.root / 'output')
+        self.assertTrue(outside.exists())
+
     def test_mbr_and_gpt_partition_offsets(self):
         raw = self.root / 'disk'
         mbr = bytearray(512)
