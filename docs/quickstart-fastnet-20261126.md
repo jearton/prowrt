@@ -66,3 +66,17 @@ FastNet 配方位于 `sources/full/package/custom/{fastnet,luci-app-fastnet,app-
 ## 回滚
 
 本轮在独立候选源码分支维护；原正式发布、原虚拟机磁盘和原配置不覆盖。包级回滚前备份 QuickStart 配置、SNMP 配置／凭据目录和已安装 APK 清单；恢复匹配旧版的 `luci-app-quickstart` 及其现场 SNMP 钩子，不能仅装回原 r2 就宣称仍有 SNMP。停用新采集服务后再移除新包；被其他应用复用的共享认证／注册和 SNMP 库不强行删除。测试环境结束恢复原磁盘与电源状态，保留候选盘供追溯。
+
+## 首次从未集成 SNMP 的旧固件升级
+
+**新镜像里的 keep.d 清单只负责安装后的后续升级，不能改变旧系统在刷写前生成的备份。** 因此，第一次从 `.3` 加现场脚本的系统升级，需要先在旧系统执行 [升级前预检脚本](../scripts/prepare-snmp-upgrade.sh)：
+
+```sh
+sh /tmp/prepare-snmp-upgrade.sh --check
+# 核对预检报告后，准备保留清单及私有备份；这一步不会刷机。
+sh /tmp/prepare-snmp-upgrade.sh --prepare
+```
+
+脚本将现存的 SNMP 配置／私有目录、旧采集服务及 DHCP 名称采集器补入 `/etc/sysupgrade.conf`，回读原生保留列表，并实际生成、检查备份归档。失败时恢复原 sysupgrade.conf。须把生成的私有 `.tar.gz` **下载到电脑**，再执行保留配置升级；`/tmp` 本身不会跨升级保留。备份包含凭据，不能上传公开仓库或 Release。
+
+不要整份恢复旧 LuCI 控制器、QuickStart 主 JS 或 `/www`，否则会覆盖新入口与 SNMP 钩子。全新安装、不保留配置或更换磁盘时，应由管理员另行迁移这份私有配置和采集器；新固件不会自动恢复旧磁盘中的信息。
