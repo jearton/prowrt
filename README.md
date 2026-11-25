@@ -4,11 +4,11 @@ ProWrt 是基于 OpenWrt 25.12.6 x86/64 的 IPv4 路由器定制固件。使用 
 
 **[下载最新固件](https://github.com/jearton/prowrt/releases/latest)**：在发布页的 Assets 中下载 x86/64 UEFI 镜像和 `SHA256SUMS`，写盘前先校验。具体变更及适用范围以所选版本的发布说明为准。
 
-**验收记录**：[v25.12.6-20261124.3](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261124.3) 原构建通过包版本、内核 ABI、权限和身份校验；验收步骤因读取测试登录态失败而标红。[对同一镜像的独立 VM 复验](https://github.com/jearton/prowrt/actions/runs/45484345242)已通过，具体项目见[发布记录](docs/releases.md)。物理网口映射和硬件驱动仍需在目标设备验证。
+**验收记录**：[v25.12.6-20261126](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261126) 完整编译通过 483 包版本、内核 ABI、权限和身份校验；[同镜像独立 CI 复验](https://github.com/jearton/prowrt/actions/runs/45707970121)及 PVE 新盘安装后的 Mac Chrome 检查通过。首次 CI 的终端重连中断及具体范围见[本版验收记录](docs/acceptance-20261126.md)。物理网口映射和硬件驱动仍需在目标设备验证。
 
 **升级注意**：先备份配置和数据，保留旧启动盘或镜像。升级不会覆盖已初始化的 Technitium 设置；启用 OpenClash DNS 联动后，停止 OpenClash 不会自动恢复主 DNS 的公网上游，未缓存的公网域名可能暂时无法解析。
 
-v25.12.6-20261124.3 包含 Zashboard 3.30.0、MetaCubeXD 1.276.0，保留 Mihomo 1.19.34，见[面板打包与验收记录](docs/openclash-dashboards-20261124.md)。
+自 v25.12.6-20261124.3 起包含 Zashboard 3.30.0、MetaCubeXD 1.276.0，保留 Mihomo 1.19.34，见[面板打包与验收记录](docs/openclash-dashboards-20261124.md)。
 
 历史记录：[v25.12.6-20261120.2](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261120.2) 的 [Netdata 镜像验收](docs/netdata-overview-acceptance-20261120.md)、[登录与终端基线](docs/acceptance-20261120.md)及[扩展验收](docs/vm-extended-validation-20261120.md)仍可查阅。该版本在 AliDNS DoH 配合 Technitium DNSSEC 校验时曾出现部分公网域名 `SERVFAIL`。v25.12.6-20261124.3 调整了首启默认值，不能据此认定原问题已修复；另见[发布前的 VM 验收](docs/vm-validation-20261123.md)和[补丁清单](patches/README.md)。
 
@@ -52,9 +52,9 @@ v25.12.6-20261124.3 包含 Zashboard 3.30.0、MetaCubeXD 1.276.0，保留 Mihomo
 
 原生 DNS 菜单和部署步骤见 [Technitium 使用文档](docs/technitium.md)。实际包版本以对应构建随附的 APK 清单为准。
 
-### 首页功能集成（下一构建）
+### 首页功能集成（25.12.6-20261126）
 
-以下调整已完成隔离虚拟机的 APK／页面验收，进入构建源码；**历史发布 `25.12.6-20261124.3` 不包含这些新增项**。本轮没有生成或发布新的完整固件。
+以下调整已纳入本版完整镜像，并完成同镜像 CI、PVE 全新安装及 Mac Chrome 验收；**历史发布 `25.12.6-20261124.3` 不包含这些新增项**。
 
 - **FastNet 0.8.10**：首页“网络测速”直接打开内置 LuCI 页面，不再弹出安装提示；来源为 [iStoreOS app hub](https://github.com/istoreos/istoreos-app-hub/tree/ed25f14656254b63f6adee57584742a6ccbfca04/apps/fastnet)，版本与 SHA256 见 [锁文件](fastnet.lock.json)。
 - **FastNet 访问范围**：移除官方安装脚本自动创建的 WAN TCP 3200 放行规则；不删除用户已有防火墙规则。
@@ -66,6 +66,8 @@ v25.12.6-20261124.3 包含 Zashboard 3.30.0、MetaCubeXD 1.276.0，保留 Mihomo
 
 具体版本、验收边界、配置保留和回滚见 [FastNet 与首页维护说明](docs/quickstart-fastnet-20261126.md)。
 
+现场新增的同源流量速率／排序和逐 IP 默认固定限速留待下一版。本版升级会替换相关包文件，仅保留 UCI 不能保留现场包文件补丁；依赖这些能力的生产系统先使用独立测试磁盘验证。
+
 ### 本项目的补丁和调整
 
 以下分别列出源码补丁、随包页面和固件默认配置；不是每项都通过 `.patch` 文件实现。
@@ -76,7 +78,7 @@ v25.12.6-20261124.3 包含 Zashboard 3.30.0、MetaCubeXD 1.276.0，保留 Mihomo
 - **流量统计界面**：未知 MAC 按 IP 分开显示，已知设备仍按真实 MAC 汇总；详见[验证与回滚](docs/nlbwmon-routed-hosts-20261124.md)。
 - **QuickStart 空列表**：兼容已验证的空 ARP 返回错误，真实接口／服务错误明确显示。
 - **QuickStart 多接口**：可通过 UCI 选择发现接口；多接口列表只读，不扫描、不伪造跨三层 MAC；详见[使用说明](docs/quickstart-devices-20261124.md)。
-- **交付状态**：包在克隆 VM 和 Mac Chrome 中验收；新固件 [`25.12.6-20261124.3`](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261124.3) 已发布；473 包／ABI、同镜像 VM 和匿名下载验收见[发布记录](docs/releases.md)。
+- **交付状态**：首次集成版为 [`25.12.6-20261124.3`](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261124.3)，本版继续保留这些修复；完整镜像及匿名下载验收见[发布记录](docs/releases.md)。
 
 #### Netdata 实时监控
 

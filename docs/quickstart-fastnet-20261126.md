@@ -1,6 +1,6 @@
 # FastNet 与首页入口集成（2026-11-26）
 
-本轮已通过 **x86_64 APK 安装、运行服务、Mac Chrome 页面与入口兼容验收**，接入下一构建的源码。测试是在 `25.12.6-20261124.3` 新磁盘上安装候选 APK；这不等于新的完整固件已经构建、发布或经过整包重装。历史 `.3` 发布附件保持不变。
+本轮先完成 x86_64 APK 验收，再从干净源码构建 `25.12.6-20261126` 完整镜像。已通过同镜像独立 CI、PVE 新磁盘全新安装及 Mac Chrome 页面与入口检查，详见[完整镜像验收记录](acceptance-20261126.md)。历史 `.3` 发布附件保持不变。
 
 ## 修改清单
 
@@ -16,7 +16,7 @@
 
 ## 包版本与构建入口
 
-| 包 | 候选版本 |
+| 包 | 本版版本 |
 | --- | --- |
 | fastnet | 0.8.10-r4 |
 | luci-app-fastnet | 0.8.10-r1 |
@@ -55,7 +55,7 @@ FastNet 配方位于 `sources/full/package/custom/{fastnet,luci-app-fastnet,app-
 - 独立构建配置树 `make defconfig` 通过；所有新增包、EQoS、原 netspeedtest 均保持 `=y`，IPv6 启动参数保持禁用。
 - 实验 LAN 桥未连接物理生产接口；虚拟 WAN 沿用 QEMU 用户态 NAT。本轮没有启动外网带宽测速，没有修改物理机、交换机或生产 DHCP／DNS。
 
-证据：[包 SHA256](evidence/fastnet-20261126/apk-sha256.json)、[Chrome 启动结果](evidence/fastnet-20261126/browser-result.json)、[首页与权限结果](evidence/fastnet-20261126/home-result.json)、[构建配置](evidence/fastnet-20261126/config-result.json)、[配置保留](evidence/fastnet-20261126/preservation-result.json)。完整候选镜像尚未构建，这些结果不能当作整包安装验收。
+早期 APK 证据：[包 SHA256](evidence/fastnet-20261126/apk-sha256.json)、[Chrome 启动结果](evidence/fastnet-20261126/browser-result.json)、[首页与权限结果](evidence/fastnet-20261126/home-result.json)、[构建配置](evidence/fastnet-20261126/config-result.json)、[配置保留](evidence/fastnet-20261126/preservation-result.json)。这些与后续[完整镜像重装验收](acceptance-20261126.md)分别记录，不用 APK 覆盖测试代替整包安装。
 
 ![首页卡片与 SNMP 数量](evidence/fastnet-20261126/home.png)
 
@@ -65,7 +65,7 @@ FastNet 配方位于 `sources/full/package/custom/{fastnet,luci-app-fastnet,app-
 
 ## 回滚
 
-本轮在独立候选源码分支维护；原正式发布、原虚拟机磁盘和原配置不覆盖。包级回滚前备份 QuickStart 配置、SNMP 配置／凭据目录和已安装 APK 清单；恢复匹配旧版的 `luci-app-quickstart` 及其现场 SNMP 钩子，不能仅装回原 r2 就宣称仍有 SNMP。停用新采集服务后再移除新包；被其他应用复用的共享认证／注册和 SNMP 库不强行删除。测试环境结束恢复原磁盘与电源状态，保留候选盘供追溯。
+历史正式发布、原虚拟机磁盘和原配置未被覆盖。包级回滚前备份 QuickStart 配置、SNMP 配置／凭据目录和已安装 APK 清单；恢复匹配旧版的 `luci-app-quickstart` 及其现场 SNMP 钩子，不能仅装回原 r2 就宣称仍有 SNMP。停用新采集服务后再移除新包；被其他应用复用的共享认证／注册和 SNMP 库不强行删除。测试环境已恢复原磁盘与电源状态，保留候选盘供追溯。
 
 ## 首次从未集成 SNMP 的旧固件升级
 

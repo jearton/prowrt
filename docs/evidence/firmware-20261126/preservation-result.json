@@ -1,0 +1,7 @@
+{
+  "existingCollectorReused": true,
+  "duplicatePolling": false,
+  "sysupgradeKeepsSiteConfigurationCredentialsAndCollectors": true,
+  "snmpPackageVersion": "5.9.4-r6",
+  "reportedSnmpVersion": "5.9.4.pre2"
+}

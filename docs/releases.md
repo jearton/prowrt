@@ -1,6 +1,24 @@
 # 固件发布与下载
 
-最新正式版为 [25.12.6-20261124.3](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261124.3)，于 2026-11-25 发布。GitHub 四个附件与原始 CI 文件摘要一致；[同镜像 VM 验收](https://github.com/jearton/prowrt/actions/runs/45484345242)和[GHCR 发布／匿名完整下载](https://github.com/jearton/prowrt/actions/runs/45485067335)通过。473 包版本及内核 ABI 严格校验通过，243271 字节的 YAML 保存、应用与实际规则匹配通过。[发布证据](evidence/firmware-20261125/publication.json)
+最新正式版为 [25.12.6-20261126](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261126)，于 2026-11-26 发布。
+
+- GitHub Actions 完整编译，483 包版本、内核 ABI、权限和身份校验通过。
+- [同镜像独立 CI 验收](https://github.com/jearton/prowrt/actions/runs/45707970121)通过；PVE 新盘全新安装同一原始镜像，Mac Chrome 的登录、终端、实时监控、FastNet、EQoS 入口及 SNMP 兼容检查通过。
+- GitHub 四个原始附件的摘要一致，发布后匿名完整下载与 gzip 检查通过。
+- [GHCR 发布及空凭据匿名完整下载](https://github.com/jearton/prowrt/actions/runs/45709334116)通过；按 OCI 摘要重新拉取并验证镜像内身份及 SHA256。
+- 首次构建 run 在终端立即重连时出现一次握手中断，原因未定位；同镜像复验没有修改源码、终端权限或验收断言，详见[验收记录](acceptance-20261126.md)。
+- 本版加入 FastNet／首页／可选 SNMP 适配，现场同源流量速率与逐 IP 默认限速留待下一版。升级不能自动保留现场直接修改的包文件，见[升级边界](quickstart-fastnet-20261126.md#本版与现场后续功能的边界)。
+
+```sh
+oras pull ghcr.io/jearton/prowrt:v25.12.6-20261126
+sha256sum -c SHA256SUMS
+```
+
+不可变引用：`ghcr.io/jearton/prowrt@sha256:e6de69e586baa0ea93444a14c63863ae36a4b724893097346193cf009e0c2d85`。固件源码为 `884bd6a78c4c8ae00cacf83d7b388f803172330b`。[发布证据](evidence/firmware-20261126/publication.json)、[匿名 GitHub 文件校验](evidence/firmware-20261126/anonymous-release-result.json)
+
+## 25.12.6-20261124.3 历史摘要
+
+上一版 [25.12.6-20261124.3](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261124.3) 于 2026-11-25 发布。GitHub 四个附件与原始 CI 文件摘要一致；[同镜像 VM 验收](https://github.com/jearton/prowrt/actions/runs/45484345242)和[GHCR 发布／匿名完整下载](https://github.com/jearton/prowrt/actions/runs/45485067335)通过。473 包版本及内核 ABI 严格校验通过，243271 字节的 YAML 保存、应用与实际规则匹配通过。[发布证据](evidence/firmware-20261125/publication.json)
 
 ```sh
 oras pull ghcr.io/jearton/prowrt:v25.12.6-20261124.3

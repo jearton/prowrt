@@ -1,0 +1,27 @@
+{
+  "anonymous": true,
+  "allFourMatchAcceptedArtifacts": true,
+  "gzip": "passed",
+  "files": [
+    {
+      "name": "build.json",
+      "size": 1027,
+      "sha256": "3c3cff76daa87c53c518219062ebf47434ddc80150b3aee59640e448fbf23ce1"
+    },
+    {
+      "name": "openwrt-x86-64-generic-squashfs-combined-efi.img.gz",
+      "size": 190699009,
+      "sha256": "e0a651cb3eceaec223c2c6169fb286c3b264880a0fedcb2641cb4584dbd48728"
+    },
+    {
+      "name": "openwrt-x86-64-generic.manifest",
+      "size": 13725,
+      "sha256": "3df8a098183921b7e4c7ea606568efb0d289cb55306316c3839b8c964dab45e1"
+    },
+    {
+      "name": "SHA256SUMS",
+      "size": 293,
+      "sha256": "bd5ed5af67c1ad5c40a18ab89909b2d5787246d0d91b0b9c05ba151da8ee83fd"
+    }
+  ]
+}
