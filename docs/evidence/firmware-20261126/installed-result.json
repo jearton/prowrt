@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "version": "25.12.6-20261126",
+  "sourceRevision": "884bd6a78c4c8ae00cacf83d7b388f803172330b",
+  "romIdentityMatchesCiArtifact": true,
+  "ipv6Disabled": true,
+  "nativeDnsUdpTcp": "passed",
+  "defaultServices": [
+    "fastnet",
+    "netdata",
+    "ttyd",
+    "technitium"
+  ],
+  "snmpDefaultEnabled": false,
+  "automaticFastnetWanRule": false,
+  "apkOverlaysInstalled": false
+}

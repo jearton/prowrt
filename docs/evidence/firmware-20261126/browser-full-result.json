@@ -1,0 +1,40 @@
+{
+  "cases": [
+    {
+      "name": "fresh anonymous browser receives normal login form",
+      "status": "passed"
+    },
+    {
+      "name": "fresh homepage, parental card removed and dormant SNMP",
+      "badge": "已发现 1 台设备（本地 1）",
+      "status": "passed"
+    },
+    {
+      "name": "bundled FastNet launch from homepage",
+      "status": "passed",
+      "externalResourcesBlocked": true
+    },
+    {
+      "name": "hidden floating gateway and native EQoS limit entry",
+      "status": "passed"
+    },
+    {
+      "name": "terminal system login, authenticated command and fresh-login requirement with adaptive height",
+      "height": 1050.40625,
+      "status": "passed"
+    },
+    {
+      "name": "native Netdata default overview, local charts and no cloud login",
+      "status": "passed"
+    },
+    {
+      "name": "bundled Technitium LuCI page",
+      "status": "passed"
+    },
+    {
+      "name": "HTTPS LuCI launches native FastNet through official entry",
+      "status": "passed"
+    }
+  ],
+  "pageErrors": []
+}

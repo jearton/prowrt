@@ -1,0 +1,49 @@
+{
+  "id": 458692548,
+  "tag": "v25.12.6-20261126",
+  "source": "884bd6a78c4c8ae00cacf83d7b388f803172330b",
+  "assetDigestsMatch": true,
+  "assets": [
+    {
+      "name": "build.json",
+      "size": 1027,
+      "digest": "sha256:3c3cff76daa87c53c518219062ebf47434ddc80150b3aee59640e448fbf23ce1",
+      "browser_download_url": "https://github.com/jearton/prowrt/releases/download/v25.12.6-20261126/build.json"
+    },
+    {
+      "name": "openwrt-x86-64-generic-squashfs-combined-efi.img.gz",
+      "size": 190699009,
+      "digest": "sha256:e0a651cb3eceaec223c2c6169fb286c3b264880a0fedcb2641cb4584dbd48728",
+      "browser_download_url": "https://github.com/jearton/prowrt/releases/download/v25.12.6-20261126/openwrt-x86-64-generic-squashfs-combined-efi.img.gz"
+    },
+    {
+      "name": "openwrt-x86-64-generic.manifest",
+      "size": 13725,
+      "digest": "sha256:3df8a098183921b7e4c7ea606568efb0d289cb55306316c3839b8c964dab45e1",
+      "browser_download_url": "https://github.com/jearton/prowrt/releases/download/v25.12.6-20261126/openwrt-x86-64-generic.manifest"
+    },
+    {
+      "name": "SHA256SUMS",
+      "size": 293,
+      "digest": "sha256:bd5ed5af67c1ad5c40a18ab89909b2d5787246d0d91b0b9c05ba151da8ee83fd",
+      "browser_download_url": "https://github.com/jearton/prowrt/releases/download/v25.12.6-20261126/SHA256SUMS"
+    }
+  ],
+  "published": true,
+  "firmwareVersion": "25.12.6-20261126",
+  "buildRun": "45694048554",
+  "sameImageAcceptanceRun": "45707970121",
+  "publisherRun": "45709334116",
+  "anonymousGitHubDownloadPassed": true,
+  "anonymousGhcrFullDownloadPassed": true,
+  "ghcrRepository": "ghcr.io/jearton/prowrt",
+  "fullImageMacBrowserPassed": true,
+  "labRestored": {
+    "originalDisk": true,
+    "originalNics": true,
+    "vm9000": "running",
+    "vm9001": "stopped",
+    "taskTunnelRemoved": true
+  },
+  "ghcrDigest": "sha256:e6de69e586baa0ea93444a14c63863ae36a4b724893097346193cf009e0c2d85"
+}
