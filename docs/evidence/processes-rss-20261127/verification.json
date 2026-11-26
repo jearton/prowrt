@@ -1,0 +1,15 @@
+{
+  "anonymousStatus": 403,
+  "processCount": 128,
+  "memoryRatioCorrect": true,
+  "oneDecimalAndActualCpu": true,
+  "fiveSecondRefresh": true,
+  "numericSortAndRefreshSelection": true,
+  "failureRetentionAndRecovery": true,
+  "connectionsCoexist": true,
+  "httpsUsesOwnCookie": true,
+  "writeMethodDenied": 405,
+  "logoutDenied": true,
+  "pageErrors": [],
+  "passed": true
+}

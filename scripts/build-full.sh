@@ -128,6 +128,7 @@ done
 git -C feeds/packages apply "$patches/golang-1.27.4.patch" "$patches/ttyd-luci-session.patch"
 release=26.288.56989~75a306d
 python3 "$repo/scripts/prepare-luci-connections.py" feeds/luci
+python3 "$repo/scripts/prepare-prowrt-processes.py" feeds/luci
 for module in applications/luci-app-filemanager; do
     sed -i "s|^include ../../luci.mk|PKG_VERSION:=$release\\nPKG_RELEASE:=1\\n\\ninclude ../../luci.mk|" "feeds/luci/$module/Makefile"
 done

@@ -1,0 +1,23 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+global.L={bind:(fn,context,...args)=>fn.bind(context,...args)};
+const view=new Function('view','fs','ui','poll','request',fs.readFileSync(process.argv[2],'utf8'))({extend:x=>x},{},{},{},{});
+const snapshot=(total,rows)=>({total_ticks:total,processes:rows});
+const row=(pid,ticks,start=10,mem=1)=>({pid,ticks,start,memory_percent:mem});
+view.consume(snapshot(1000,[row(1,20),row(2,40)]));assert.equal(view.rows[0].cpu,null);
+view.consume(snapshot(2000,[row(1,45,10,2),row(2,140,10,1),row(3,100)]));
+assert.equal(view.rows[0].cpu,2.5);assert.equal(view.rows[1].cpu,10);assert.equal(view.rows[2].cpu,null);
+assert.deepEqual(view.rows.slice().sort(view.compare.bind(view)).map(p=>p.pid),[2,1,3]);
+view.descending=false;assert.deepEqual(view.rows.slice().sort(view.compare.bind(view)).map(p=>p.pid),[1,2,3]);
+view.sortKey='memory_percent';view.descending=true;assert.equal(view.rows.slice().sort(view.compare.bind(view))[0].pid,1);
+view.consume(snapshot(3000,[row(1,100,11),row(2,1)]));assert.equal(view.rows[0].cpu,null);assert.equal(view.rows[1].cpu,null);
+console.log('PASS: CPU deltas, numeric ascending/descending, memory sort, missing samples and PID reuse/reset');
+(async()=>{
+ view.readonly=true;assert.equal(view.handleSignal(15,1),undefined);
+ view.status={};view.updateTable=()=>{};let release,calls=0;
+ view.fetchMetrics=()=>{calls++;return new Promise(resolve=>{release=resolve})};
+ const first=view.refresh();assert.equal(view.refresh(),first);assert.equal(calls,1);
+ release(snapshot(4000,[row(1,110,11)]));await first;assert.equal(view.pending,null);
+ const previous=view.rows;view.fetchMetrics=()=>Promise.reject(new Error('bounded test failure'));
+ await view.refresh();assert.equal(view.rows,previous);assert.match(view.status.textContent,/bounded test failure/);
+ console.log('PASS: readonly signal guard, single-flight polling and retained rows on refresh failure');
+})().catch(e=>{console.error(e);process.exitCode=1});

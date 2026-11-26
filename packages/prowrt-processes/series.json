@@ -1,0 +1,19 @@
+{
+  "field_source_commit": "3e8e7d5c164534d702bb785b77e636a3ee3abe66",
+  "field_input_sha256": {
+    "metrics.lua": "7561a9b6c7b33f4d0024c758ff7c5975ee7b4dda270133b0441abc019787a0b3",
+    "controller.lua": "cea013803323a5b3776528cec3dfcde30f6aa1703b3ad0877814896680a06724",
+    "processes.js": "e7b2a1da77fad0c88077d29af13142019fac7f9d0d4f37d7dfdf4e41777776bb"
+  },
+  "payload_sha256": {
+    "metrics.lua": "a01ad191d8317b3165b13299230100c3f126b7b92a8a19408506345064621b1d",
+    "controller.lua": "db0c7f11933de3089f379223d9a2a49fd1aff1a9a6c33a0f8ecc8f0a96fc9d32",
+    "processes.js": "bb02563221e2c85b19ba7e730a8a8a71b534d1b7bc9de7d57c332afbc7573fde"
+  },
+  "luci_source_commit": "75a306df84a020c57a631ef5b4c02ace56d93387",
+  "version": "26.288.56989~75a306d-r2",
+  "input_sha256": {
+    "modules/luci-mod-status/Makefile": "cd4c611d11e3d9d179fe37a4cb3c56e0538017eb0a83f00a1b41b4d6fcbbedbc",
+    "modules/luci-mod-status/root/usr/share/luci/menu.d/luci-mod-status.json": "f6369d04b1fd8d34047bdf6d5549ad0aac4ddfbe4fcbf3da14fedf8fa67c946c"
+  }
+}
