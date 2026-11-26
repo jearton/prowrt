@@ -16,6 +16,7 @@ on:
       - 'scripts/prepare-dns-service-hook.py'
       - 'scripts/prepare-openclash.py'
       - 'scripts/prepare-nlbwmon.py'
+      - 'scripts/prepare-uhttpd.py'
       - 'scripts/prepare-quickstart-devices.py'
       - '*.lock.json'
       - 'sources/full/**'

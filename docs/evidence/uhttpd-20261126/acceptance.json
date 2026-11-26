@@ -1,0 +1,76 @@
+{
+  "date": "2026-11-26",
+  "environment": "PVE VM9000, isolated vmbr99 LAN, IPv6 disabled, retained candidate disk27; production untouched",
+  "historical": {
+    "syscall": "poll",
+    "nfds": 1,
+    "timeout_ms_hex": "0x1b7740",
+    "timeout_ms": 1800000,
+    "original_trigger": "not identified"
+  },
+  "baseline": {
+    "script_timeout_seconds": 3600,
+    "acl_timeout_ms": 1800000,
+    "syscall": "7 0x7ffd06eb54e8 0x1 0x1b7740 0x0 0x0 0x0 0x7ffd06eb5488 0x7fe2d7e227ee",
+    "static_http_status": 0,
+    "static_elapsed_seconds": 2.001116
+  },
+  "fixed": {
+    "acl_timeout_ms": 5000,
+    "static_http_status": 200,
+    "static_elapsed_seconds": 0.000279,
+    "syscall_wait": "epoll_wait, HTTP event loop continues",
+    "checks": [
+      {
+        "case": "deny-all-paths",
+        "elapsed": 0.167,
+        "output": "{\"jsonrpc\":\"2.0\",\"id\":10,\"error\":{\"code\":-32002,\"message\":\"Access denied\"}}{\"jsonrpc\":\"2.0\",\"id\":11,\"error\":{\"code\":-32002,\"message\":\"Access denied\"}}{\"code\":-13,\"message\":\"Permission denied\"}"
+      },
+      {
+        "case": "allowed-rest-and-batch",
+        "elapsed": 0.147,
+        "output": "{\"jsonrpc\":\"2.0\",\"id\":12,\"result\":{\"reply\":\"pong\"}}[{\"jsonrpc\":\"2.0\",\"id\":13,\"result\":[0,{\"reply\":\"pong\"}]},{\"jsonrpc\":\"2.0\",\"id\":14,\"result\":[0,{\"reply\":\"pong\"}]}]"
+      },
+      {
+        "case": "three-concurrent-stalled-acls",
+        "elapsed": 5.138,
+        "output": "static-ok\n200 0.000328\nstatic-ok\n200 0.000223\nstatic-ok\n200 0.000223\n{\"jsonrpc\":\"2.0\",\"id\":20,\"error\":{\"code\":-32003,\"message\":\"ubus request timed out\"}}{\"jsonrpc\":\"2.0\",\"id\":21,\"error\":{\"code\":-32003,\"message\":\"ubus request timed out\"}}{\"code\":-13,\"message\":\"Permission denied\"}"
+      },
+      {
+        "case": "disconnect-cleanup",
+        "elapsed": 6.285,
+        "output": "fd_before=8 fd_after=8\n{\"jsonrpc\":\"2.0\",\"id\":23,\"result\":[0,{\"reply\":\"pong\"}]}"
+      }
+    ],
+    "extra_checks": [
+      "late authorization response did not execute protected call",
+      "permitted subscribe streamed event: test and pong",
+      "timed-out first JSON-RPC batch element advanced to valid second element",
+      "real rpcd limited session permitted system.board and denied system.info; temporary session destroyed"
+    ]
+  },
+  "package": {
+    "name": "uhttpd-mod-ubus",
+    "version": "2026.08.24~373145f7-r2",
+    "arch": "x86_64",
+    "base_uhttpd": "2026.08.24~373145f7-r1 (core ABI unchanged)",
+    "build": "Linux 189, pinned OpenWrt SDK GCC14.3.0 musl, apk mkpkg; candidate hotfix package, not GitHub release",
+    "upgrade": "passed, 483 packages retained",
+    "installed_static_seconds": 0.000334,
+    "rollback": "r1 downgrade passed, original module SHA256 and /etc/config/uhttpd unchanged",
+    "artifacts": {
+      "uhttpd-mod-ubus-2026.08.24~373145f7-r1.apk": "de770041806e87207d99aafaf735a02ad4068a97295d2510d225384ba61ed4aa",
+      "uhttpd-mod-ubus-2026.08.24~373145f7-r2.apk": "2911e6c9acf6069cc8fc090b9017c9c783aee4b6a2b700e82afda79560c6d07c"
+    }
+  },
+  "firmware": "Source integration prepared; no new full image built or published for this change",
+  "restoration": {
+    "original_disk": "truenas-virt-nfs:9000/vm-9000-disk-21.raw",
+    "nic_configuration": "same as before.json",
+    "vm9000": "running",
+    "vm9001": "stopped",
+    "task_addresses_routes_neighbours": "removed; original 192.168.77.2/32 namespace address retained",
+    "private_test_processes": "stopped before switching disks",
+    "pve_warning": "net1 is intentional QEMU user-mode NAT, not attached to a bridge; no network configuration changed"
+  }
+}

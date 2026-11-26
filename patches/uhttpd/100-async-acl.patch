@@ -1,0 +1,234 @@
+--- a/ubus.c
++++ b/ubus.c
+@@ -262,38 +262,156 @@
+ {
+ 	uh_ubus_error(cl, err, ubus_strerror(err));
+ }
++
++/* ACL checks must never run ubus_complete_request() in the HTTP event loop.
++ * script_timeout is for long-running scripts, not authorization. */
++#define UH_UBUS_ACL_TIMEOUT_MS 5000
++
++struct uh_ubus_acl {
++	struct ubus_request req;
++	struct uloop_timeout timeout;
++	struct client *cl;
++	char *sid, *object, *function;
++	struct blob_attr *args;
++	bool allow;
++	bool subscribe;
++};
+ 
++static void uh_ubus_send_request(struct client *cl, const char *sid, struct blob_attr *args);
++static void uh_ubus_subscribe(struct client *cl, const char *path);
++
++static void uh_ubus_acl_destroy(struct uh_ubus_acl *acl)
++{
++	free(acl->sid);
++	free(acl->object);
++	free(acl->function);
++	free(acl->args);
++	free(acl);
++}
++
++static void uh_ubus_acl_free(struct client *cl)
++{
++	struct uh_ubus_acl *acl = cl->dispatch.req_data;
++	if (!acl)
++		return;
++	cl->dispatch.req_data = NULL;
++	uloop_timeout_cancel(&acl->timeout);
++	ubus_abort_request(ctx, &acl->req);
++	uh_ubus_acl_destroy(acl);
++}
++
++static void uh_ubus_acl_finish(struct uh_ubus_acl *acl, int status)
++{
++	struct client *cl = acl->cl;
++	bool allow = !status && acl->allow;
++
++	uloop_timeout_cancel(&acl->timeout);
++	cl->dispatch.req_data = NULL;
++	cl->dispatch.req_free = NULL;
++	/* Sending a response may finish the request and invoke its cleanup. */
++	uh_client_ref(cl);
++	if (cl->state < CLIENT_STATE_CLOSE) {
++		if (acl->subscribe) {
++			if (allow) {
++				uh_ubus_subscribe(cl, acl->object);
++			} else {
++				uh_ubus_send_header(cl, 200, "OK", "application/json");
++				uh_ubus_posix_error(cl, EACCES);
++			}
++		} else if (allow) {
++			cl->dispatch.ubus.func = acl->function;
++			uh_ubus_send_request(cl, acl->sid, acl->args);
++		} else {
++			uh_ubus_json_rpc_error(cl, status == UBUS_STATUS_TIMEOUT ? ERROR_TIMEOUT : ERROR_ACCESS);
++		}
++	}
++	uh_ubus_acl_destroy(acl);
++	uh_client_unref(cl);
++}
++
+ static void uh_ubus_allowed_cb(struct ubus_request *req, int type, struct blob_attr *msg)
+ {
++	struct uh_ubus_acl *acl = container_of(req, struct uh_ubus_acl, req);
+ 	struct blob_attr *tb[__SES_MAX];
+-	bool *allow = (bool *)req->priv;
+-
+ 	if (!msg)
+ 		return;
+-
+ 	blobmsg_parse(ses_policy, __SES_MAX, tb, blob_data(msg), blob_len(msg));
+-
+ 	if (tb[SES_ACCESS])
+-		*allow = blobmsg_get_bool(tb[SES_ACCESS]);
++		acl->allow = blobmsg_get_bool(tb[SES_ACCESS]);
+ }
+ 
+-static bool uh_ubus_allowed(const char *sid, const char *obj, const char *fun)
++static void uh_ubus_acl_complete(struct ubus_request *req, int status)
+ {
+-	uint32_t id;
+-	bool allow = false;
+-	static struct blob_buf req;
++	struct uh_ubus_acl *acl = container_of(req, struct uh_ubus_acl, req);
++	uh_ubus_acl_finish(acl, status);
++}
+ 
+-	if (ubus_lookup_id(ctx, "session", &id))
+-		return false;
++static void uh_ubus_acl_timeout(struct uloop_timeout *timeout)
++{
++	struct uh_ubus_acl *acl = container_of(timeout, struct uh_ubus_acl, timeout);
++	ubus_abort_request(ctx, &acl->req);
++	uh_ubus_acl_finish(acl, UBUS_STATUS_TIMEOUT);
++}
+ 
++static void uh_ubus_authorize(struct client *cl, const char *sid, const char *obj,
++                             const char *fun, struct blob_attr *args, bool subscribe)
++{
++	struct uh_ubus_acl *acl;
++	struct blob_buf req = {};
++	uint32_t id;
++	int err;
++
++	if (conf.ubus_noauth) {
++		if (subscribe)
++			uh_ubus_subscribe(cl, obj);
++		else
++			uh_ubus_send_request(cl, sid, args);
++		return;
++	}
++
++	acl = calloc(1, sizeof(*acl));
++	if (!acl)
++		goto error;
++	acl->cl = cl;
++	acl->subscribe = subscribe;
++	acl->sid = strdup(sid);
++	acl->object = strdup(obj);
++	acl->function = strdup(fun);
++	if (args)
++		acl->args = blob_memdup(args);
++	if (!acl->sid || !acl->object || !acl->function || (args && !acl->args)) {
++		uh_ubus_acl_destroy(acl);
++		goto error;
++	}
++	if (ubus_lookup_id(ctx, "session", &id)) {
++		uh_ubus_acl_finish(acl, UBUS_STATUS_NOT_FOUND);
++		return;
++	}
+ 	blob_buf_init(&req, 0);
+ 	blobmsg_add_string(&req, "ubus_rpc_session", sid);
+ 	blobmsg_add_string(&req, "object", obj);
+ 	blobmsg_add_string(&req, "function", fun);
+-
+-	ubus_invoke(ctx, id, "access", req.head, uh_ubus_allowed_cb, &allow, conf.script_timeout * 500);
+-
+-	return allow;
++	err = ubus_invoke_async(ctx, id, "access", req.head, &acl->req);
++	blob_buf_free(&req);
++	if (err) {
++		uh_ubus_acl_finish(acl, err);
++		return;
++	}
++	cl->dispatch.req_data = acl;
++	cl->dispatch.req_free = uh_ubus_acl_free;
++	acl->req.data_cb = uh_ubus_allowed_cb;
++	acl->req.complete_cb = uh_ubus_acl_complete;
++	ubus_complete_request_async(ctx, &acl->req);
++	acl->timeout.cb = uh_ubus_acl_timeout;
++	uloop_timeout_set(&acl->timeout, UH_UBUS_ACL_TIMEOUT_MS);
++	return;
++error:
++	if (subscribe) {
++		uh_ubus_send_header(cl, 200, "OK", "application/json");
++		uh_ubus_posix_error(cl, ENOMEM);
++	} else {
++		uh_ubus_json_rpc_error(cl, ERROR_INTERNAL);
++	}
+ }
+ 
+ /* GET requests handling */
+@@ -370,21 +488,12 @@
+ 		ubus_unregister_subscriber(ctx, &du->sub);
+ }
+ 
+-static void uh_ubus_handle_get_subscribe(struct client *cl, const char *path)
++static void uh_ubus_subscribe(struct client *cl, const char *path)
+ {
+ 	struct dispatch_ubus *du = &cl->dispatch.ubus;
+-	const char *sid;
+ 	uint32_t id;
+ 	int err;
+ 
+-	sid = uh_ubus_get_auth(cl->hdr.head);
+-
+-	if (!conf.ubus_noauth && !uh_ubus_allowed(sid, path, ":subscribe")) {
+-		uh_ubus_send_header(cl, 200, "OK", "application/json");
+-		uh_ubus_posix_error(cl, EACCES);
+-		return;
+-	}
+-
+ 	du->sub.cb = uh_ubus_subscription_notification_cb;
+ 	du->sub.remove_cb = uh_ubus_subscription_notification_remove_cb;
+ 
+@@ -437,7 +546,7 @@
+ 	} else if (!strncmp(url, "/subscribe/", strlen("/subscribe/"))) {
+ 		url += strlen("/subscribe");
+ 
+-		uh_ubus_handle_get_subscribe(cl, url + 1);
++		uh_ubus_authorize(cl, uh_ubus_get_auth(cl->hdr.head), url + 1, ":subscribe", NULL, true);
+ 	} else {
+ 		ops->http_header(cl, 404, "Not Found");
+ 		ustream_printf(cl->us, "\r\n");
+@@ -800,12 +909,7 @@
+ 			goto error;
+ 		}
+ 
+-		if (!conf.ubus_noauth && !uh_ubus_allowed(data.sid, data.object, data.function)) {
+-			err = ERROR_ACCESS;
+-			goto error;
+-		}
+-
+-		uh_ubus_send_request(cl, data.sid, data.data);
++		uh_ubus_authorize(cl, data.sid, data.object, data.function, data.data, false);
+ 		goto out;
+ 	}
+ 	else if (!strcmp(data.method, "list")) {
+@@ -887,12 +991,7 @@
+ 		goto error;
+ 	}
+ 
+-	if (!conf.ubus_noauth && !uh_ubus_allowed(sid, path, data.method)) {
+-		err = ERROR_ACCESS;
+-		goto error;
+-	}
+-
+-	uh_ubus_send_request(cl, sid, data.params);
++	uh_ubus_authorize(cl, sid, path, data.method, data.params, false);
+ 	goto out;
+ 
+ error:

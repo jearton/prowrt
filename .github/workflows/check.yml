@@ -79,6 +79,8 @@ jobs:
           export CHROME_EXECUTABLE="$(command -v google-chrome)"
           export PLAYWRIGHT_MODULE="$RUNNER_TEMP/editor-browser/node_modules/playwright"
           node scripts/check-openclash-editor.cjs
+      - name: Check pinned uhttpd asynchronous ACL patch
+        run: python3 scripts/check-uhttpd.py "$RUNNER_TEMP/uhttpd-check"
       - name: Check nlbwmon routed host fallback
         run: python3 scripts/check-nlbwmon.py "$RUNNER_TEMP/nlbwmon-check"
       - name: Check QuickStart device discovery compatibility
