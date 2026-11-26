@@ -1,0 +1,21 @@
+{
+  "source_commit": "75a306df84a020c57a631ef5b4c02ace56d93387",
+  "version": "26.288.56989~75a306d",
+  "release": "2",
+  "input_sha256": {
+    "modules/luci-base/ucode/sys.uc": "0380fba5d843a8950bab0ef70982cb40ab8f475e8d267c873e4199a736b55656",
+    "modules/luci-base/root/usr/share/rpcd/ucode/luci": "6f9d972958d9cfb8a7ba421f38f0a5b03718ffeb0e30d460b64c9faf725fc54e",
+    "modules/luci-mod-status/root/usr/share/rpcd/acl.d/luci-mod-status.json": "be0441526a4e288399f80f0f081722ddf188932a4bf33f3cbe7044f694036851",
+    "modules/luci-mod-status/root/usr/share/luci/menu.d/luci-mod-status.json": "93801ac0e9d9ee4573edcf352278d3d23b55604d412807d94f6dccd1d446ea21"
+  },
+  "recipe_sha256": {
+    "luci-base": "4a933ee77787783219bdeae45b03d89a6c3b5f1512e8ad8bc68d19f4b250c9bc",
+    "luci-mod-status": "912800ee5a94aa7bf70ef5fb12d1f7fa5e058d123965bc745ff5ac02e701dcdb"
+  },
+  "payload_sha256": {
+    "connections.js": "492c8f5e32605af96685f6894dec1b67e4c94a5b990860c094d84bae082ee36b",
+    "conntrack.js": "3642cd15ce70959c86f948ea47abd9bb7a2066c61d4a513c5b83a10b023bb772",
+    "legacy-blocks.json": "a7b7ef355d9108d9fbf6bd19effa1e23015cc5c38c42defa7d1d9cd772ed644b",
+    "legacy-guard.patch": "41bffb5142e2a93deedb3bb9a6748bae1efe40291a3f675d3db5b1a754c24c01"
+  }
+}

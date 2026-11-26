@@ -14,6 +14,7 @@ on:
       - 'scripts/prepare-openclash.py'
       - 'scripts/prepare-nlbwmon.py'
       - 'scripts/prepare-uhttpd.py'
+      - 'scripts/prepare-luci-connections.py'
       - 'scripts/prepare-quickstart-devices.py'
       - '*.lock.json'
       - 'profiles/network-ui.config'

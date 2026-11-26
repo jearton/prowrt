@@ -127,7 +127,8 @@ for name in luci-nftables-legacy-warning luci-filemanager-layout; do
 done
 git -C feeds/packages apply "$patches/golang-1.27.4.patch" "$patches/ttyd-luci-session.patch"
 release=26.288.56989~75a306d
-for module in modules/luci-mod-status applications/luci-app-filemanager; do
+python3 "$repo/scripts/prepare-luci-connections.py" feeds/luci
+for module in applications/luci-app-filemanager; do
     sed -i "s|^include ../../luci.mk|PKG_VERSION:=$release\\nPKG_RELEASE:=1\\n\\ninclude ../../luci.mk|" "feeds/luci/$module/Makefile"
 done
 lmo_src=feeds/luci/modules/luci-base/src
@@ -203,6 +204,8 @@ old["px5g-mbedtls"] = "11"
 old["openssl-util"] = "3.5.9-r1"
 old["libopenssl-conf"] = "3.5.9-r1"
 old["luci-app-openclash"] = "0.48.002-r3"
+for name in ("luci-base", "luci-mod-status"):
+    old[name] = "26.288.56989~75a306d-r2"
 for name in ("ruby-json", "ruby-ostruct", "ruby-set", "ruby-tsort"):
     old[name] = old["ruby"]
 old["adguardhome"] = "0.107.79-r2"
