@@ -1,0 +1,6 @@
+{
+  "denyStatus": 403,
+  "allowStatus": 200,
+  "readonlySignalsDisabled": true,
+  "passed": true
+}

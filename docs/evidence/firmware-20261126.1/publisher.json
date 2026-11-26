@@ -1,0 +1,76 @@
+{
+  "status": "passed",
+  "run": 45884609070,
+  "url": "https://github.com/jearton/prowrt/actions/runs/45884609070",
+  "sourceRevision": "85a30565889bce41518be49b58c25e1d15645b24",
+  "tag": "v25.12.6-20261126.1",
+  "immutableRef": "ghcr.io/jearton/prowrt@sha256:e87cf42a65480a59d15e22f4dc930f4f8d85a41ee2024046018993c3f5a410a9",
+  "anonymousFullPull": true,
+  "checksumsAndEmbeddedIdentity": "passed",
+  "jobs": [
+    {
+      "id": 140132083300,
+      "name": "publish",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 45884609070,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Validate release tag",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Download and verify the release bundle",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Publish and verify the OCI artifact",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Verify public anonymous download",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        }
+      ]
+    }
+  ]
+}

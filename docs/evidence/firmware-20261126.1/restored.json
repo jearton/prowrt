@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "originalDiskAndNicsRestored": true,
+  "vm9000": "running",
+  "vm9001": "stopped",
+  "testClientAndForwarderStopped": true,
+  "testAddressRemoved": true
+}
