@@ -1,0 +1,7 @@
+{
+  "source_commit": "373145f72c884c36a2b16f7f47e74ffae06bd754",
+  "source_ubus_sha256": "1eaee34402712e78ff7a5660e2b074dc915a0624f0f713847ee45d64647cbf71",
+  "recipe_sha256": "c5ee746eae2d9183d01f2a6dfa818eb300b1fdff86125f52fcb1e7c6db2bd6c8",
+  "release": "2",
+  "patch_sha256": "7abb3b50d30bd4a563663fd3f15bbd001009a8ce34cbccf99669767a98718219"
+}

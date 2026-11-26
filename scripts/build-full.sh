@@ -81,6 +81,7 @@ cp "$repo/sources/full/package/fastnet-meta.mk" package/fastnet-meta.mk
 python3 "$repo/scripts/prepare-openclash.py" package/custom/luci-app-openclash
 "$repo/scripts/prepare-technitium-luci.sh" package/custom
 python3 "$repo/scripts/prepare-dns-service-hook.py" adguardhome feeds/packages/net/adguardhome
+python3 "$repo/scripts/prepare-uhttpd.py" package/network/services/uhttpd
 python3 "$repo/scripts/prepare-nlbwmon.py" feeds/packages/net/nlbwmon feeds/luci/applications/luci-app-nlbwmon
 cp -a "$repo/sources/full/files/." files/
 cp -a "$repo/image-files/network-ui/usr" "$repo/image-files/network-ui/www" files/
@@ -193,6 +194,8 @@ def versions(path):
 old, new = map(versions, sys.argv[1:3])
 old["kmod-bonding"] = old["kmod-macvlan"]
 old["ttyd"] = "1.7.7-r6"
+for name in ("uhttpd", "uhttpd-mod-ubus"):
+    old[name] = "2026.08.24~373145f7-r2"
 old["netdata"] = "2.13.0-r5"
 old["luci-app-netdata"] = "0.1-r3"
 old["luci-i18n-netdata-zh-cn"] = "0.1"
