@@ -84,6 +84,13 @@ jobs:
           node --check packages/luci-connections/connections.js
           node tests/luci-connections/parser.cjs
           python3 scripts/check-luci-connections.py "$RUNNER_TEMP/luci-connections-check"
+      - name: Check native RSS process snapshots and numeric sorting
+        run: |
+          lua5.1 tests/prowrt-processes/metrics.lua packages/prowrt-processes/metrics.lua
+          luac5.1 -p packages/prowrt-processes/metrics.lua packages/prowrt-processes/controller.lua
+          node --check packages/prowrt-processes/processes.js
+          node tests/prowrt-processes/view.cjs packages/prowrt-processes/processes.js
+          python3 scripts/prepare-prowrt-processes.py "$RUNNER_TEMP/luci-connections-check/luci"
       - name: Check pinned uhttpd asynchronous ACL patch
         run: python3 scripts/check-uhttpd.py "$RUNNER_TEMP/uhttpd-check"
       - name: Check nlbwmon routed host fallback
