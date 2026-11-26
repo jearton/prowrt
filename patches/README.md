@@ -81,7 +81,7 @@
 - [APK 约束](../sources/full/package/custom/luci-app-openclash/root/etc/uci-defaults/99-prowrt-openclash-pin)与[一键更新保护](../sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/openclash_update.sh)：普通升级不能静默换成未适配上游包。
 - [维护说明](../docs/openclash-dns-integration-20261124.md)：菜单路径、默认范围、已有配置兼容、升级和回滚。
 
-## LuCI 连接页大列表修复（2026-11-27 候选）
+## LuCI 连接页大列表修复（2026-11-27）
 
 - [原生认证 HTTP 页面](../packages/luci-connections/connections.js)：全快照解析、全表筛选／数值排序、100 行分页，图表和列表分别刷新。
 - [解析模块](../packages/luci-connections/conntrack.js)：保留连接原始方向与双向计数，不通过 UBUS 搬运大列表。
@@ -90,10 +90,12 @@
 - [构建整合](../scripts/prepare-luci-connections.py)：严格核对固定上游文件与配方，构建 r2 并同步最终包清单。
 - [根因、实际验收与回滚](../docs/luci-connections-20261127.md)：连接页故障与 uhttpd 权限阻塞分别记录，不能混为一个根因。
 
-## 原生进程页 RSS 与排序（2026-11-27 候选）
+## 原生进程页 RSS 与排序（2026-11-27）
 
 - [RSS／CPU 采样](../packages/prowrt-processes/metrics.lua)：读取实际驻留页、PID 身份与整机时间，不启动后台采样服务。
 - [认证 GET 路由](../packages/prowrt-processes/controller.lua)：复用原读取权限、协议对应 Cookie，拒绝匿名及写方法。
 - [数值排序页面](../packages/prowrt-processes/processes.js)：一位小数、5 秒单并发更新、失败保留、原有信号写权限。
 - [来源锁和构建整合](../scripts/prepare-prowrt-processes.py)：合入 `luci-mod-status` r2，精确调整进程菜单并保留连接菜单。
 - [统计口径、验证和回滚](../docs/processes-rss-20261127.md)：文件级候选与完整镜像验收分别记录。
+
+上述 Web／状态页 r2 改动已随 `25.12.6-20261126.1` 发布，完整镜像与匿名下载验证见[本轮验收](../docs/acceptance-20261127.md)。

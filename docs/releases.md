@@ -1,6 +1,22 @@
 # 固件发布与下载
 
-最新正式版为 [25.12.6-20261126](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261126)，于 2026-11-26 发布。
+最新正式版为 [25.12.6-20261126.1](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261126.1)，于 2026-11-27 发布（北京时间）。
+
+- 加入 uhttpd 异步权限检查、连接页认证 HTTP 全列表／100 行分页，以及 RSS 进程页一位小数、5 秒更新和数值排序。
+- [完整 CI](https://github.com/jearton/prowrt/actions/runs/45874343349)、原始镜像新盘安装、Mac Chrome 和 5000／10000 条真实连接验收通过，483 包精确清单及身份一致。
+- 发布四附件与原件摘要一致；公开资产 API 匿名完整下载，以及 [GHCR 空凭据完整拉取](https://github.com/jearton/prowrt/actions/runs/45884609070)的 SHA256、gzip、镜像内身份通过。
+- 源码 `85a30565889bce41518be49b58c25e1d15645b24`；本轮测试夹具中断及升级边界见[完整验收](acceptance-20261127.md)。现场同源流量速率和逐 IP 默认限速仍需单独迁移，RSS 本次已纳入。
+
+```sh
+oras pull ghcr.io/jearton/prowrt:v25.12.6-20261126.1
+sha256sum -c SHA256SUMS
+```
+
+不可变引用：`ghcr.io/jearton/prowrt@sha256:e87cf42a65480a59d15e22f4dc930f4f8d85a41ee2024046018993c3f5a410a9`。[发布证据](evidence/firmware-20261126.1/publication.json)
+
+## 25.12.6-20261126 历史摘要
+
+上一正式版为 [25.12.6-20261126](https://github.com/jearton/prowrt/releases/tag/v25.12.6-20261126)，于 2026-11-26 发布。
 
 - GitHub Actions 完整编译，483 包版本、内核 ABI、权限和身份校验通过。
 - [同镜像独立 CI 验收](https://github.com/jearton/prowrt/actions/runs/45707970121)通过；PVE 新盘全新安装同一原始镜像，Mac Chrome 的登录、终端、实时监控、FastNet、EQoS 入口及 SNMP 兼容检查通过。

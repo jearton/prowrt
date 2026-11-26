@@ -1,0 +1,198 @@
+{
+  "status": "passed",
+  "version": "25.12.6-20261126.1",
+  "sourceRevision": "85a30565889bce41518be49b58c25e1d15645b24",
+  "ci": {
+    "run": 45874343349,
+    "url": "https://github.com/jearton/prowrt/actions/runs/45874343349",
+    "conclusion": "success",
+    "startedAt": "2026-11-26T18:14:44Z",
+    "completedAt": "2026-11-26T19:16:11Z"
+  },
+  "sameOriginalCiArtifact": true,
+  "freshDiskInstallation": true,
+  "apkOverlaysInstalled": false,
+  "installed": {
+    "status": "passed",
+    "version": "25.12.6-20261126.1",
+    "sourceRevision": "85a30565889bce41518be49b58c25e1d15645b24",
+    "romIdentityMatchesCiArtifact": true,
+    "ipv6Disabled": true,
+    "nativeDnsUdpTcp": "passed",
+    "defaultServices": [
+      "fastnet",
+      "netdata",
+      "ttyd",
+      "technitium"
+    ],
+    "snmpDefaultEnabled": false,
+    "automaticFastnetWanRule": false,
+    "apkOverlaysInstalled": false
+  },
+  "browser": {
+    "cases": [
+      {
+        "name": "fresh anonymous browser receives normal login form",
+        "status": "passed"
+      },
+      {
+        "name": "fresh homepage, parental card removed and dormant SNMP",
+        "badge": "已发现 1 台设备（本地 1）",
+        "status": "passed"
+      },
+      {
+        "name": "bundled FastNet launch from homepage",
+        "status": "passed",
+        "externalResourcesBlocked": true
+      },
+      {
+        "name": "hidden floating gateway and native EQoS limit entry",
+        "status": "passed"
+      },
+      {
+        "name": "terminal system login, authenticated command and fresh-login requirement with adaptive height",
+        "height": 1050.40625,
+        "status": "passed"
+      },
+      {
+        "name": "native Netdata default overview, local charts and no cloud login",
+        "status": "passed"
+      },
+      {
+        "name": "bundled Technitium LuCI page",
+        "status": "passed"
+      },
+      {
+        "name": "HTTPS LuCI launches native FastNet through official entry",
+        "status": "passed"
+      }
+    ],
+    "pageErrors": []
+  },
+  "rss": {
+    "anonymousStatus": 403,
+    "processCount": 150,
+    "memoryRatioCorrect": true,
+    "oneDecimalAndActualCpu": true,
+    "fiveSecondRefresh": true,
+    "numericSortAndRefreshSelection": true,
+    "failureRetentionAndRecovery": true,
+    "connectionsCoexist": true,
+    "httpsUsesOwnCookie": true,
+    "writeMethodDenied": 405,
+    "logoutDenied": true,
+    "pageErrors": [],
+    "passed": true
+  },
+  "processPermissions": {
+    "denyStatus": 403,
+    "allowStatus": 200,
+    "readonlySignalsDisabled": true,
+    "passed": true
+  },
+  "connections": [
+    {
+      "actualTcpClients": 5000,
+      "parsedTotal": 5014,
+      "renderedRows": 100,
+      "allTestClientsFoundByGlobalFilter": true,
+      "secondPageDifferent": true,
+      "numericSortDirection": "asc",
+      "rpcdStable": true,
+      "loginRetained": true,
+      "maxBrowserLongTaskMs": 54
+    },
+    {
+      "actualTcpClients": 10000,
+      "parsedTotal": 10007,
+      "renderedRows": 100,
+      "allTestClientsFoundByGlobalFilter": true,
+      "secondPageDifferent": true,
+      "numericSortDirection": "asc",
+      "rpcdStable": true,
+      "loginRetained": true,
+      "maxBrowserLongTaskMs": 70
+    }
+  ],
+  "connectionErrorsAndPermissions": {
+    "legacy": {
+      "http": 200,
+      "status": 8,
+      "keys": [
+        "error",
+        "max_entries",
+        "max_blob_bytes"
+      ]
+    },
+    "debug": {
+      "status": "<div id=\"connections-status\" role=\"status\" class=\"alert-message warning\">Error: Service Unavailable</div>",
+      "button": "<button id=\"connections-refresh\" class=\"btn cbi-button\" style=\"margin-left:1em\">Refresh</button>",
+      "login": false
+    },
+    "errorText": "Error: Service Unavailable",
+    "failedDownloadRequests": 1,
+    "maxConcurrentDownloads": 1,
+    "recovery": "Connections: 10005 · 3:30:48 AM",
+    "anonymousStatus": 403,
+    "sessionRetained": true,
+    "passed": true
+  },
+  "firstPassInterruption": {
+    "kind": "test fixture error",
+    "reason": "nixio.fs.chmod requires a mode string; numeric mode in temporary permission fixture rejected",
+    "verifiedWithBoundedProbe": true,
+    "correction": "test helper uses umask077; firmware and assertions unchanged",
+    "completedCasesReused": [
+      "fresh installation identity/defaults/DNS",
+      "uhttpd ACL scenarios",
+      "basic Mac browser pages",
+      "RSS main page"
+    ],
+    "remainingCasesRetestedOnFreshInstallOfSameImage": [
+      "scoped process permissions",
+      "5000/10000 real TCP clients",
+      "legacy RPC error and download auth/error recovery"
+    ]
+  },
+  "uhttpdAcl": {
+    "status": "passed",
+    "cases": [
+      {
+        "name": "deny-all-paths",
+        "elapsed": 0.165
+      },
+      {
+        "name": "allowed-rest-and-batch",
+        "elapsed": 0.145
+      },
+      {
+        "name": "three-concurrent-stalled-acls",
+        "elapsed": 5.135
+      },
+      {
+        "name": "disconnect-cleanup",
+        "elapsed": 6.272
+      }
+    ],
+    "lateReplyBatchAndSubscription": "passed",
+    "realRpcdScopedSession": "passed"
+  },
+  "files": {
+    "SHA256SUMS": {
+      "size": 293,
+      "sha256": "a059cc5ed6d7771d4233f7efa6baab27554583adcc66ec7162bf8692324462b1"
+    },
+    "build.json": {
+      "size": 1029,
+      "sha256": "6e2cadb0c98a782bcb82b1c18f6b9624b2adab6ba44f12fe29e3a51d3085fccc"
+    },
+    "openwrt-x86-64-generic-squashfs-combined-efi.img.gz": {
+      "size": 190703869,
+      "sha256": "12baa1b59c35a1f9848191de9acf8b99c2d5d0de068a1b62181d7e71b40aa9cd"
+    },
+    "openwrt-x86-64-generic.manifest": {
+      "size": 13728,
+      "sha256": "78afa65ea133dfab100d77685b490bd5b86269a78f388816c49cbf24c0b14939"
+    }
+  }
+}
