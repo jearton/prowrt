@@ -1,0 +1,54 @@
+--- a/modules/luci-base/ucode/sys.uc
++++ b/modules/luci-base/ucode/sys.uc
+@@ -103,8 +103,10 @@
+ 				}
+ 			}
+ 
+-			if (callback)
+-				callback(e);
++			if (callback) {
++				if (callback(e) === false)
++					break;
++			}
+ 			else
+ 				push(connt ??= [], e);
+ 		}
+--- a/modules/luci-base/root/usr/share/rpcd/ucode/luci
++++ b/modules/luci-base/root/usr/share/rpcd/ucode/luci
+@@ -603,8 +603,34 @@
+ 	},
+ 
+ 	getConntrackList: {
+-		call: function() {
+-			return { result: conntrack_list() };
++		call: function(request) {
++			// Legacy clients must not disconnect rpcd with an oversized ubus reply.
++			// The regular connection page uses authenticated HTTP instead.
++			let result = [], bytes = 64, overflow = false;
++			const align = n => (n + 3) & ~3;
++			conntrack_list(entry => {
++				let entry_bytes = 8;
++				for (let key, value in entry) {
++					if (type(value) in [ 'array', 'object' ]) {
++						overflow = true;
++						return false;
++					}
++					// Eight bytes conservatively covers either numeric encoding.
++					entry_bytes += 4 + align(3 + length(key)) + align(type(value) == 'string' ? length(value) + 1 : 8);
++				}
++				if (length(result) >= 1000 || bytes + entry_bytes > 524288) {
++					overflow = true;
++					return false;
++				}
++				bytes += entry_bytes;
++				push(result, entry);
++			});
++			if (overflow) {
++				// UBUS_STATUS_NOT_SUPPORTED=8, never an authentication error.
++				request.reply({ error: 'Connection list exceeds safe ubus reply limits; use the HTTP connection page', max_entries: 1000, max_blob_bytes: 524288 }, 8);
++				return null;
++			}
++			return { result };
+ 		}
+ 	},
+ 

@@ -1,0 +1,14 @@
+[
+  {
+    "source": "modules/luci-base/ucode/sys.uc",
+    "installed": "usr/share/ucode/luci/sys.uc",
+    "old": "\t\t\tif (callback)\n\t\t\t\tcallback(e);",
+    "new": "\t\t\tif (callback) {\n\t\t\t\tif (callback(e) === false)\n\t\t\t\t\tbreak;\n\t\t\t}"
+  },
+  {
+    "source": "modules/luci-base/root/usr/share/rpcd/ucode/luci",
+    "installed": "usr/share/rpcd/ucode/luci",
+    "old": "\tgetConntrackList: {\n\t\tcall: function() {\n\t\t\treturn { result: conntrack_list() };\n\t\t}\n\t},",
+    "new": "\tgetConntrackList: {\n\t\tcall: function(request) {\n\t\t\t// Legacy clients must not disconnect rpcd with an oversized ubus reply.\n\t\t\t// The regular connection page uses authenticated HTTP instead.\n\t\t\tlet result = [], bytes = 64, overflow = false;\n\t\t\tconst align = n => (n + 3) & ~3;\n\t\t\tconntrack_list(entry => {\n\t\t\t\tlet entry_bytes = 8;\n\t\t\t\tfor (let key, value in entry) {\n\t\t\t\t\tif (type(value) in [ 'array', 'object' ]) {\n\t\t\t\t\t\toverflow = true;\n\t\t\t\t\t\treturn false;\n\t\t\t\t\t}\n\t\t\t\t\t// Eight bytes conservatively covers either numeric encoding.\n\t\t\t\t\tentry_bytes += 4 + align(3 + length(key)) + align(type(value) == 'string' ? length(value) + 1 : 8);\n\t\t\t\t}\n\t\t\t\tif (length(result) >= 1000 || bytes + entry_bytes > 524288) {\n\t\t\t\t\toverflow = true;\n\t\t\t\t\treturn false;\n\t\t\t\t}\n\t\t\t\tbytes += entry_bytes;\n\t\t\t\tpush(result, entry);\n\t\t\t});\n\t\t\tif (overflow) {\n\t\t\t\t// UBUS_STATUS_NOT_SUPPORTED=8, never an authentication error.\n\t\t\t\trequest.reply({ error: 'Connection list exceeds safe ubus reply limits; use the HTTP connection page', max_entries: 1000, max_blob_bytes: 524288 }, 8);\n\t\t\t\treturn null;\n\t\t\t}\n\t\t\treturn { result };\n\t\t}\n\t},"
+  }
+]

@@ -1,0 +1,12 @@
+const fs=require('fs'),assert=require('assert');
+const path=process.argv[2]||'packages/luci-connections/conntrack.js';
+const parser=new Function('baseclass',fs.readFileSync(path,'utf8'))({extend:o=>o});
+const protocols=parser.protocols(['tcp 6 TCP','udp 17 UDP','# comment']);
+const line='ipv4 2 tcp 6 777 ESTABLISHED src=192.0.2.1 dst=203.0.113.1 sport=0 dport=443 packets=3 bytes=100 src=203.0.113.1 dst=192.0.2.2 sport=443 dport=2345 packets=4 bytes=200 mark=0 use=2';
+const entries=parser.parse(line+'\n'+line.replace('ESTABLISHED','TIME_WAIT')+'\ninvalid\n',protocols);
+assert.equal(entries.length,1);assert.equal(entries[0].bytes,300);assert.equal(entries[0].packets,7);assert.equal(entries[0].sport,0);assert.equal(entries[0].dport,443);assert.equal(entries[0].src,'192.0.2.1');assert.equal(entries[0].dst,'203.0.113.1');assert.equal(entries[0].timeout,777);
+assert.equal(parser.address('0000:0000:0000:0000:0000:0000:0000:0001'),'::1');assert.equal(parser.address('2001:0db8:0000:0000:0000:0001:0000:0000'),'2001:db8::1:0:0');assert.equal(parser.address('::ffff:192.0.2.1'),'::ffff:192.0.2.1');
+assert.equal(parser.parse(line.replaceAll('192.0.2.1','127.0.0.1').replaceAll('203.0.113.1','127.0.0.1'),protocols).length,0);
+const rows=Array.from({length:10000},(_,i)=>['IPV4','TCP','192.0.2.'+(i%250),String(i),[i,'display '+i]]);
+parser.sort(rows,4,true,()=>0);const first=parser.page(rows,0,100),last=parser.page(rows,99,100);assert.equal(first.rows.length,100);assert.equal(first.rows[0][4][0],9999);assert.equal(last.rows[99][4][0],0);assert.equal(last.total,10000);assert.equal(parser.page(rows,1000,100).current,99);assert.equal(parser.page([],1000,100).current,0);
+console.log('Verified conntrack tuples, counters, IPv6, numeric global sort and complete 10000-row pagination');

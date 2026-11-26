@@ -80,3 +80,12 @@
 - [只读模板](../sources/full/package/custom/luci-app-openclash/luasrc/view/openclash/readonly_config.htm)与[提交辅助](../sources/full/package/custom/luci-app-openclash/root/www/luci-static/resources/openclash/js/common.js)：运行 YAML 不提交；源文件流式提交，失败保留编辑内容，不放大全局上限。
 - [APK 约束](../sources/full/package/custom/luci-app-openclash/root/etc/uci-defaults/99-prowrt-openclash-pin)与[一键更新保护](../sources/full/package/custom/luci-app-openclash/root/usr/share/openclash/openclash_update.sh)：普通升级不能静默换成未适配上游包。
 - [维护说明](../docs/openclash-dns-integration-20261124.md)：菜单路径、默认范围、已有配置兼容、升级和回滚。
+
+## LuCI 连接页大列表修复（2026-11-27 候选）
+
+- [原生认证 HTTP 页面](../packages/luci-connections/connections.js)：全快照解析、全表筛选／数值排序、100 行分页，图表和列表分别刷新。
+- [解析模块](../packages/luci-connections/conntrack.js)：保留连接原始方向与双向计数，不通过 UBUS 搬运大列表。
+- [旧 RPC 防护](../packages/luci-connections/legacy-guard.patch)：有界解析，超限返回非认证错误，不伪造完整成功。
+- [独立来源锁与文件级合并](../packages/luci-connections)：只改相关方法、菜单 action 和 ACL，保留其它现场定制。
+- [构建整合](../scripts/prepare-luci-connections.py)：严格核对固定上游文件与配方，构建 r2 并同步最终包清单。
+- [根因、实际验收与回滚](../docs/luci-connections-20261127.md)：连接页故障与 uhttpd 权限阻塞分别记录，不能混为一个根因。

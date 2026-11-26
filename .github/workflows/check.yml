@@ -79,6 +79,11 @@ jobs:
           export CHROME_EXECUTABLE="$(command -v google-chrome)"
           export PLAYWRIGHT_MODULE="$RUNNER_TEMP/editor-browser/node_modules/playwright"
           node scripts/check-openclash-editor.cjs
+      - name: Check authenticated HTTP conntrack transport and complete pagination
+        run: |
+          node --check packages/luci-connections/connections.js
+          node tests/luci-connections/parser.cjs
+          python3 scripts/check-luci-connections.py "$RUNNER_TEMP/luci-connections-check"
       - name: Check pinned uhttpd asynchronous ACL patch
         run: python3 scripts/check-uhttpd.py "$RUNNER_TEMP/uhttpd-check"
       - name: Check nlbwmon routed host fallback

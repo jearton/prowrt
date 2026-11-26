@@ -1,0 +1,59 @@
+{
+  "scope": "File-level candidate on published 20261126 image plus uhttpd r2; not fresh rebuilt image acceptance",
+  "transport": "native authenticated fs.read_direct HTTP",
+  "listRefreshSeconds": 10,
+  "graphRefreshSeconds": 3,
+  "pageSize": 100,
+  "cases": [
+    {
+      "actualTcpClients": 5000,
+      "kernelCountBefore": 5021,
+      "kernelCountAfter": 5032,
+      "parsedTotal": 5008,
+      "renderedRows": 100,
+      "filterFoundAllClients": true,
+      "secondPageDifferent": true,
+      "sortDirection": "asc",
+      "rpcdStable": true,
+      "sessionRetained": true,
+      "maxBrowserLongTaskMs": 52
+    },
+    {
+      "actualTcpClients": 10000,
+      "kernelCountBefore": 10023,
+      "kernelCountAfter": 10020,
+      "parsedTotal": 10005,
+      "renderedRows": 100,
+      "filterFoundAllClients": true,
+      "secondPageDifferent": true,
+      "sortDirection": "asc",
+      "rpcdStable": true,
+      "sessionRetained": true,
+      "maxBrowserLongTaskMs": 94
+    }
+  ],
+  "errorsAndPermissions": {
+    "legacy": {
+      "http": 200,
+      "status": 8,
+      "keys": [
+        "error",
+        "max_entries",
+        "max_blob_bytes"
+      ]
+    },
+    "debug": {
+      "status": "<div id=\"connections-status\" role=\"status\" class=\"alert-message warning\">Error: Service Unavailable</div>",
+      "button": "<button id=\"connections-refresh\" class=\"btn cbi-button\" style=\"margin-left:1em\">Refresh</button>",
+      "login": false
+    },
+    "errorText": "Error: Service Unavailable",
+    "failedDownloadRequests": 1,
+    "maxConcurrentDownloads": 1,
+    "recovery": "Connections: 7082 · 12:52:07 AM",
+    "anonymousStatus": 403,
+    "sessionRetained": true,
+    "passed": true
+  },
+  "pageErrors": []
+}
